@@ -54,25 +54,27 @@ class FBDVariableDialog(BlockPreviewDialog):
         @param tagname: Tagname of project POU edited
         @param exclude_input: Exclude input from variable class selection
         """
-        BlockPreviewDialog.__init__(self, parent, controller, tagname,
-                                    title=_('Variable Properties'))
+        BlockPreviewDialog.__init__(
+            self, parent, controller, tagname, title=_("Variable Properties")
+        )
 
         # Dictionaries containing correspondence between variable block class and string
         # to be shown in Class combo box in both sense
         self.VARIABLE_CLASSES_DICT = {
-            INPUT:  _("Input"),
-            INOUT:  _("InOut"),
-            OUTPUT: _("Output")
+            INPUT: _("Input"),
+            INOUT: _("InOut"),
+            OUTPUT: _("Output"),
         }
 
         self.VARIABLE_CLASSES_DICT_REVERSE = dict(
-            [(value, key) for key, value in self.VARIABLE_CLASSES_DICT.iteritems()])
+            [(value, key) for key, value in self.VARIABLE_CLASSES_DICT.items()]
+        )
 
         # Init common sizers
         self._init_sizers(4, 2, 4, None, 3, 2)
 
         # Create label for variable class
-        class_label = wx.StaticText(self, label=_('Class:'))
+        class_label = wx.StaticText(self, label=_("Class:"))
         self.LeftGridSizer.AddWindow(class_label, flag=wx.GROW)
 
         # Create a combo box for defining variable class
@@ -81,20 +83,17 @@ class FBDVariableDialog(BlockPreviewDialog):
         self.LeftGridSizer.AddWindow(self.Class, flag=wx.GROW)
 
         # Create label for variable execution order
-        execution_order_label = wx.StaticText(self,
-                                              label=_('Execution Order:'))
+        execution_order_label = wx.StaticText(self, label=_("Execution Order:"))
         self.LeftGridSizer.AddWindow(execution_order_label, flag=wx.GROW)
 
         # Create spin control for defining variable execution order
         self.ExecutionOrder = wx.SpinCtrl(self, min=0, style=wx.SP_ARROW_KEYS)
-        self.Bind(wx.EVT_SPINCTRL, self.OnExecutionOrderChanged,
-                  self.ExecutionOrder)
+        self.Bind(wx.EVT_SPINCTRL, self.OnExecutionOrderChanged, self.ExecutionOrder)
         self.LeftGridSizer.AddWindow(self.ExecutionOrder, flag=wx.GROW)
 
         # Create label for variable expression
-        name_label = wx.StaticText(self, label=_('Expression:'))
-        self.RightGridSizer.AddWindow(name_label, border=5,
-                                      flag=wx.GROW | wx.BOTTOM)
+        name_label = wx.StaticText(self, label=_("Expression:"))
+        self.RightGridSizer.AddWindow(name_label, border=5, flag=wx.GROW | wx.BOTTOM)
 
         # Create text control for defining variable expression
         self.Expression = wx.TextCtrl(self)
@@ -103,24 +102,31 @@ class FBDVariableDialog(BlockPreviewDialog):
 
         # Create a list box to selected variable expression in the list of
         # variables defined in POU
-        self.VariableName = wx.ListBox(self, size=wx.Size(-1, 120),
-                                       style=wx.LB_SINGLE | wx.LB_SORT)
+        self.VariableName = wx.ListBox(
+            self, size=wx.Size(-1, 120), style=wx.LB_SINGLE | wx.LB_SORT
+        )
         self.Bind(wx.EVT_LISTBOX, self.OnNameChanged, self.VariableName)
-        self.RightGridSizer.AddWindow(self.VariableName, border=4, flag=wx.GROW | wx.TOP)
+        self.RightGridSizer.AddWindow(
+            self.VariableName, border=4, flag=wx.GROW | wx.TOP
+        )
 
         # Add preview panel and associated label to sizers
-        self.MainSizer.AddWindow(self.PreviewLabel, border=20,
-                                 flag=wx.GROW | wx.LEFT | wx.RIGHT)
-        self.MainSizer.AddWindow(self.Preview, border=20,
-                                 flag=wx.GROW | wx.LEFT | wx.RIGHT)
+        self.MainSizer.AddWindow(
+            self.PreviewLabel, border=20, flag=wx.GROW | wx.LEFT | wx.RIGHT
+        )
+        self.MainSizer.AddWindow(
+            self.Preview, border=20, flag=wx.GROW | wx.LEFT | wx.RIGHT
+        )
 
         # Add buttons sizer to sizers
         self.MainSizer.AddSizer(
-            self.ButtonSizer, border=20,
-            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT)
+            self.ButtonSizer,
+            border=20,
+            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+        )
 
         # Set options that can be selected in class combo box
-        for var_class, choice in self.VARIABLE_CLASSES_DICT.iteritems():
+        for var_class, choice in self.VARIABLE_CLASSES_DICT.items():
             if not exclude_input or var_class != INPUT:
                 self.Class.Append(choice)
         self.Class.SetSelection(0)
@@ -142,13 +148,12 @@ class FBDVariableDialog(BlockPreviewDialog):
         Called to refresh names in name list box
         """
         # Get variable class to select POU variable applicable
-        var_class = self.VARIABLE_CLASSES_DICT_REVERSE[
-            self.Class.GetStringSelection()]
+        var_class = self.VARIABLE_CLASSES_DICT_REVERSE[self.Class.GetStringSelection()]
 
         # Refresh names in name list box by selecting variables in POU variables
         # list that can be applied to variable class
         self.VariableName.Clear()
-        for name, (var_type, _value_type) in self.VariableList.iteritems():
+        for name, (var_type, _value_type) in self.VariableList.items():
             if var_type != "Input" or var_class == INPUT:
                 self.VariableName.Append(name)
 
@@ -179,7 +184,6 @@ class FBDVariableDialog(BlockPreviewDialog):
 
         # For each parameters defined, set corresponding control value
         for name, value in values.items():
-
             # Parameter is variable expression
             if name == "expression":
                 # Set expression text control value
@@ -206,10 +210,12 @@ class FBDVariableDialog(BlockPreviewDialog):
         expression = self.Expression.GetValue()
         values = {
             "class": self.VARIABLE_CLASSES_DICT_REVERSE[
-                self.Class.GetStringSelection()],
+                self.Class.GetStringSelection()
+            ],
             "expression": expression,
             "var_type": self.VariableList.get(expression, (None, None))[1],
-            "executionOrder": self.ExecutionOrder.GetValue()}
+            "executionOrder": self.ExecutionOrder.GetValue(),
+        }
         values["width"], values["height"] = self.Element.GetSize()
         return values
 
@@ -265,7 +271,8 @@ class FBDVariableDialog(BlockPreviewDialog):
         """
         # Select the corresponding value in name list box if it exists
         self.VariableName.SetSelection(
-            self.VariableName.FindString(self.Expression.GetValue()))
+            self.VariableName.FindString(self.Expression.GetValue())
+        )
 
         self.Refresh()
         event.Skip()
@@ -292,7 +299,8 @@ class FBDVariableDialog(BlockPreviewDialog):
             self.VARIABLE_CLASSES_DICT_REVERSE[self.Class.GetStringSelection()],
             name,
             self.VariableList.get(name, ("", ""))[1],
-            executionOrder=self.ExecutionOrder.GetValue())
+            executionOrder=self.ExecutionOrder.GetValue(),
+        )
 
         # Call BlockPreviewDialog function
         BlockPreviewDialog.DrawPreview(self)

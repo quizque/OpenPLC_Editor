@@ -25,7 +25,7 @@
 
 from __future__ import absolute_import
 from __future__ import division
-from future.builtins import round
+
 
 import wx
 from six.moves import xrange
@@ -64,7 +64,11 @@ def CalcBranchSize(elements, stops):
     element_tree = {}
     for element in elements:
         if element not in element_tree:
-            element_tree[element] = {"parents": ["start"], "children": [], "weight": None}
+            element_tree[element] = {
+                "parents": ["start"],
+                "children": [],
+                "weight": None,
+            }
             GenerateTree(element, element_tree, stop_list)
         elif element_tree[element]:
             element_tree[element]["parents"].append("start")
@@ -104,6 +108,8 @@ def RemoveElement(remove, element_tree):
             if child != "stop":
                 RemoveElement(child, element_tree)
         element_tree.pop(remove)
+
+
 #        element_tree[remove] = None
 
 
@@ -121,7 +127,11 @@ def GenerateTree(element, element_tree, stop_list):
         for connector in input_connectors:
             for wire, _handle in connector.GetWires():
                 next = wire.EndConnected.GetParentBlock()
-                if isinstance(next, LD_PowerRail) and next.GetType() == LEFTRAIL or next in stop_list:
+                if (
+                    isinstance(next, LD_PowerRail)
+                    and next.GetType() == LEFTRAIL
+                    or next in stop_list
+                ):
                     # for remove in element_tree[element]["children"]:
                     #     RemoveElement(remove, element_tree)
                     # element_tree[element]["children"] = ["stop"]
@@ -133,7 +143,11 @@ def GenerateTree(element, element_tree, stop_list):
                     if next in element_tree:
                         element_tree[next]["parents"].append(element)
                     else:
-                        element_tree[next] = {"parents": [element], "children": [], "weight": None}
+                        element_tree[next] = {
+                            "parents": [element],
+                            "children": [],
+                            "weight": None,
+                        }
                         GenerateTree(next, element_tree, stop_list)
 
 
@@ -174,7 +188,9 @@ class LD_Viewer(Viewer):
     Class derived from Viewer class that implements a Viewer of Ladder Diagram
     """
 
-    def __init__(self, parent, tagname, window, controler, debug=False, instancepath=""):
+    def __init__(
+        self, parent, tagname, window, controler, debug=False, instancepath=""
+    ):
         Viewer.__init__(self, parent, tagname, window, controler, debug, instancepath)
         self.Rungs = []
         self.RungComments = []
@@ -221,7 +237,8 @@ class LD_Viewer(Viewer):
                 if len(rungs) > 1:
                     raise ValueError(
                         _("Ladder element with id %d is on more than one rung.")
-                        % instance["id"])
+                        % instance["id"]
+                    )
 
                 element = self.FindElementById(instance["id"])
                 element_connectors = element.GetConnectors()
@@ -240,7 +257,8 @@ class LD_Viewer(Viewer):
                 if len(rungs) > 1:
                     raise ValueError(
                         _("Ladder element with id %d is on more than one rung.")
-                        % instance["id"])
+                        % instance["id"]
+                    )
 
                 element = self.FindElementById(instance["id"])
                 element_connectors = element.GetConnectors()
@@ -278,8 +296,12 @@ class LD_Viewer(Viewer):
 
         dc = self.GetLogicalDC()
         pos = event.GetLogicalPosition(dc)
-        if self.SelectedElement and not isinstance(self.SelectedElement, (Graphic_Group, Wire)):
-            if self.SelectedElement.HitTest(pos, connectors) or self.SelectedElement.TestHandle(pos) != (0, 0):
+        if self.SelectedElement and not isinstance(
+            self.SelectedElement, (Graphic_Group, Wire)
+        ):
+            if self.SelectedElement.HitTest(
+                pos, connectors
+            ) or self.SelectedElement.TestHandle(pos) != (0, 0):
                 return self.SelectedElement
         elements = []
         for element in self.GetElements(sort_wires=True):
@@ -339,7 +361,9 @@ class LD_Viewer(Viewer):
                     self.SelectedElement = None
             if element:
                 self.SelectedElement = element
-                self.SelectedElement.OnLeftDown(event, self.GetLogicalDC(), self.Scaling)
+                self.SelectedElement.OnLeftDown(
+                    event, self.GetLogicalDC(), self.Scaling
+                )
                 self.SelectedElement.Refresh()
             else:
                 self.rubberBand.Reset()
@@ -361,7 +385,9 @@ class LD_Viewer(Viewer):
             dc = self.GetLogicalDC()
             if not isinstance(self.SelectedElement, Graphic_Group):
                 if self.IsWire(self.SelectedElement):
-                    result = self.SelectedElement.TestSegment(event.GetLogicalPosition(dc), True)
+                    result = self.SelectedElement.TestSegment(
+                        event.GetLogicalPosition(dc), True
+                    )
                     if result and result[1] in [EAST, WEST]:
                         self.SelectedElement.SetSelectedSegment(result[0])
                 else:
@@ -391,7 +417,9 @@ class LD_Viewer(Viewer):
                     self.SelectedElement.SetSelectedSegment(0)
                 else:
                     self.SelectedElement.SetSelected(True)
-                    self.SelectedElement.OnRightUp(event, self.GetLogicalDC(), self.Scaling)
+                    self.SelectedElement.OnRightUp(
+                        event, self.GetLogicalDC(), self.Scaling
+                    )
                     self.SelectedElement.Refresh()
                 wx.CallAfter(self.SetCurrentCursor, 0)
         event.Skip()
@@ -404,8 +432,12 @@ class LD_Viewer(Viewer):
         if self.GetDrawingMode() == FREEDRAWING_MODE:
             Viewer.OnChar(self, event)
         else:
-            xpos, ypos = self.GetScrollPos(wx.HORIZONTAL), self.GetScrollPos(wx.VERTICAL)
-            xmax = self.GetScrollRange(wx.HORIZONTAL) - self.GetScrollThumb(wx.HORIZONTAL)
+            xpos, ypos = self.GetScrollPos(wx.HORIZONTAL), self.GetScrollPos(
+                wx.VERTICAL
+            )
+            xmax = self.GetScrollRange(wx.HORIZONTAL) - self.GetScrollThumb(
+                wx.HORIZONTAL
+            )
             ymax = self.GetScrollRange(wx.VERTICAL) - self.GetScrollThumb(wx.VERTICAL)
             keycode = event.GetKeyCode()
             if keycode == wx.WXK_DELETE and self.SelectedElement:
@@ -492,15 +524,21 @@ class LD_Viewer(Viewer):
     # -------------------------------------------------------------------------------
 
     def AddLadderRung(self):
-        dialog = LDElementDialog(self.ParentWindow, self.Controler, self.TagName, "coil")
+        dialog = LDElementDialog(
+            self.ParentWindow, self.Controler, self.TagName, "coil"
+        )
         dialog.SetPreviewFont(self.GetFont())
         varlist = []
-        vars = self.Controler.GetEditedElementInterfaceVars(self.TagName, debug=self.Debug)
+        vars = self.Controler.GetEditedElementInterfaceVars(
+            self.TagName, debug=self.Debug
+        )
         if vars:
             for var in vars:
                 if var.Class != "Input" and var.Type == "BOOL":
                     varlist.append(var.Name)
-        returntype = self.Controler.GetEditedElementInterfaceReturnType(self.TagName, debug=self.Debug)
+        returntype = self.Controler.GetEditedElementInterfaceReturnType(
+            self.TagName, debug=self.Debug
+        )
         if returntype == "BOOL":
             varlist.append(self.Controler.GetEditedElementName(self.TagName))
         dialog.SetVariables(varlist)
@@ -588,14 +626,20 @@ class LD_Viewer(Viewer):
             if not isinstance(left_element.GetParentBlock(), LD_Coil):
                 wires.append(self.SelectedElement)
         elif self.SelectedElement and isinstance(self.SelectedElement, Graphic_Group):
-            if False not in [self.IsWire(element) for element in self.SelectedElement.GetElements()]:
+            if False not in [
+                self.IsWire(element) for element in self.SelectedElement.GetElements()
+            ]:
                 for element in self.SelectedElement.GetElements():
                     wires.append(element)
         if len(wires) > 0:
-            dialog = LDElementDialog(self.ParentWindow, self.Controler, self.TagName, "contact")
+            dialog = LDElementDialog(
+                self.ParentWindow, self.Controler, self.TagName, "contact"
+            )
             dialog.SetPreviewFont(self.GetFont())
             varlist = []
-            vars = self.Controler.GetEditedElementInterfaceVars(self.TagName, debug=self.Debug)
+            vars = self.Controler.GetEditedElementInterfaceVars(
+                self.TagName, debug=self.Debug
+            )
             if vars:
                 for var in vars:
                     if var.Class != "Output" and var.Type == "BOOL":
@@ -625,13 +669,17 @@ class LD_Viewer(Viewer):
                         left_index.append(wire.EndConnected.GetWireIndex(wire))
                     else:
                         idx = left_elements.index(wire.EndConnected)
-                        left_index[idx] = min(left_index[idx], wire.EndConnected.GetWireIndex(wire))
+                        left_index[idx] = min(
+                            left_index[idx], wire.EndConnected.GetWireIndex(wire)
+                        )
                     if wire.StartConnected not in right_elements:
                         right_elements.append(wire.StartConnected)
                         right_index.append(wire.StartConnected.GetWireIndex(wire))
                     else:
                         idx = right_elements.index(wire.StartConnected)
-                        right_index[idx] = min(right_index[idx], wire.StartConnected.GetWireIndex(wire))
+                        right_index[idx] = min(
+                            right_index[idx], wire.StartConnected.GetWireIndex(wire)
+                        )
                     wire.SetSelectedSegment(None)
                     wire.Clean()
                     rung.SelectElement(wire)
@@ -676,7 +724,12 @@ class LD_Viewer(Viewer):
                 self.RefreshVisibleElements()
                 self.Refresh(False)
         else:
-            message = wx.MessageDialog(self, _("You must select the wire where a contact should be added!"), _("Error"), wx.OK | wx.ICON_ERROR)
+            message = wx.MessageDialog(
+                self,
+                _("You must select the wire where a contact should be added!"),
+                _("Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
             message.ShowModal()
             message.Destroy()
 
@@ -714,7 +767,10 @@ class LD_Viewer(Viewer):
                                 left_index.append(wire.EndConnected.GetWireIndex(wire))
                             else:
                                 index = left_elements.index(wire.EndConnected)
-                                left_index[index] = max(left_index[index], wire.EndConnected.GetWireIndex(wire))
+                                left_index[index] = max(
+                                    left_index[index],
+                                    wire.EndConnected.GetWireIndex(wire),
+                                )
                 for connector in block_infos["outputs"]:
                     for wire, _handle in connector.GetWires():
                         found = False
@@ -724,14 +780,22 @@ class LD_Viewer(Viewer):
                                     if right_element not in block_infos["rights"]:
                                         block_infos["rights"].append(right_element)
                                 found = True
-                        if not found and wire.StartConnected not in block_infos["rights"]:
+                        if (
+                            not found
+                            and wire.StartConnected not in block_infos["rights"]
+                        ):
                             block_infos["rights"].append(wire.StartConnected)
                             if wire.StartConnected not in right_elements:
                                 right_elements.append(wire.StartConnected)
-                                right_index.append(wire.StartConnected.GetWireIndex(wire))
+                                right_index.append(
+                                    wire.StartConnected.GetWireIndex(wire)
+                                )
                             else:
                                 index = right_elements.index(wire.StartConnected)
-                                right_index[index] = max(right_index[index], wire.StartConnected.GetWireIndex(wire))
+                                right_index[index] = max(
+                                    right_index[index],
+                                    wire.StartConnected.GetWireIndex(wire),
+                                )
                 for connector in block_infos["inputs"]:
                     for infos in blocks_infos:
                         if connector in infos["rights"]:
@@ -785,14 +849,18 @@ class LD_Viewer(Viewer):
                 for element in left_elements:
                     left_powerrail &= isinstance(element.GetParentBlock(), LD_PowerRail)
                 for element in right_elements:
-                    right_powerrail &= isinstance(element.GetParentBlock(), LD_PowerRail)
+                    right_powerrail &= isinstance(
+                        element.GetParentBlock(), LD_PowerRail
+                    )
                 if not left_powerrail or not right_powerrail:
                     wires = []
                     if left_powerrail:
                         powerrail = left_elements[0].GetParentBlock()
                         index = 0
                         for left_element in left_elements:
-                            index = max(index, powerrail.GetConnectorIndex(left_element))
+                            index = max(
+                                index, powerrail.GetConnectorIndex(left_element)
+                            )
                         powerrail.InsertConnector(index + 1)
                         powerrail.RefreshModel()
                         connectors = powerrail.GetConnectors()
@@ -800,23 +868,37 @@ class LD_Viewer(Viewer):
                         for i, right_element in enumerate(right_elements):
                             new_wire = Wire(self)
                             wires.append(new_wire)
-                            right_element.InsertConnect(right_index[i] + 1, (new_wire, 0), False)
-                            connectors["outputs"][index + 1].Connect((new_wire, -1), False)
+                            right_element.InsertConnect(
+                                right_index[i] + 1, (new_wire, 0), False
+                            )
+                            connectors["outputs"][index + 1].Connect(
+                                (new_wire, -1), False
+                            )
                             new_wire.ConnectStartPoint(None, right_element)
-                            new_wire.ConnectEndPoint(None, connectors["outputs"][index + 1])
+                            new_wire.ConnectEndPoint(
+                                None, connectors["outputs"][index + 1]
+                            )
                         right_elements.reverse()
                     elif right_powerrail:
-                        dialog = LDElementDialog(self.ParentWindow, self.Controleur, self.TagName, "coil")
+                        dialog = LDElementDialog(
+                            self.ParentWindow, self.Controleur, self.TagName, "coil"
+                        )
                         dialog.SetPreviewFont(self.GetFont())
                         varlist = []
-                        vars = self.Controler.GetEditedElementInterfaceVars(self.TagName, debug=self.Debug)
+                        vars = self.Controler.GetEditedElementInterfaceVars(
+                            self.TagName, debug=self.Debug
+                        )
                         if vars:
                             for var in vars:
                                 if var.Class != "Input" and var.Type == "BOOL":
                                     varlist.append(var.Name)
-                        returntype = self.Controler.GetEditedElementInterfaceReturnType(self.TagName, debug=self.Debug)
+                        returntype = self.Controler.GetEditedElementInterfaceReturnType(
+                            self.TagName, debug=self.Debug
+                        )
                         if returntype == "BOOL":
-                            varlist.append(self.Controler.GetEditedElementName(self.TagName))
+                            varlist.append(
+                                self.Controler.GetEditedElementName(self.TagName)
+                            )
                         dialog.SetVariables(varlist)
                         dialog.SetValues({"name": "", "type": COIL_NORMAL})
                         if dialog.ShowModal() == wx.ID_OK:
@@ -824,7 +906,9 @@ class LD_Viewer(Viewer):
                             powerrail = right_elements[0].GetParentBlock()
                             index = 0
                             for right_element in right_elements:
-                                index = max(index, powerrail.GetConnectorIndex(right_element))
+                                index = max(
+                                    index, powerrail.GetConnectorIndex(right_element)
+                                )
                             powerrail.InsertConnector(index + 1)
                             powerrail.RefreshModel()
                             connectors = powerrail.GetConnectors()
@@ -843,7 +927,9 @@ class LD_Viewer(Viewer):
                             wire = Wire(self)
                             connectors["inputs"][index + 1].Connect((wire, 0), False)
                             coil_connectors["outputs"][0].Connect((wire, -1), False)
-                            wire.ConnectStartPoint(None, connectors["inputs"][index + 1])
+                            wire.ConnectStartPoint(
+                                None, connectors["inputs"][index + 1]
+                            )
                             wire.ConnectEndPoint(None, coil_connectors["outputs"][0])
                             self.AddWire(wire)
                             rung.SelectElement(wire)
@@ -853,9 +939,15 @@ class LD_Viewer(Viewer):
                                 # Create Wire between LeftPowerRail and Coil
                                 new_wire = Wire(self)
                                 wires.append(new_wire)
-                                coil_connectors["inputs"][0].Connect((new_wire, 0), False)
-                                left_element.InsertConnect(left_index[i] + 1, (new_wire, -1), False)
-                                new_wire.ConnectStartPoint(None, coil_connectors["inputs"][0])
+                                coil_connectors["inputs"][0].Connect(
+                                    (new_wire, 0), False
+                                )
+                                left_element.InsertConnect(
+                                    left_index[i] + 1, (new_wire, -1), False
+                                )
+                                new_wire.ConnectStartPoint(
+                                    None, coil_connectors["inputs"][0]
+                                )
                                 new_wire.ConnectEndPoint(None, left_element)
 
                             self.RefreshPosition(coil)
@@ -870,8 +962,12 @@ class LD_Viewer(Viewer):
                                 if not exist:
                                     new_wire = Wire(self)
                                     wires.append(new_wire)
-                                    right_element.InsertConnect(right_index[j] + 1, (new_wire, 0), False)
-                                    left_element.InsertConnect(left_index[i] + 1, (new_wire, -1), False)
+                                    right_element.InsertConnect(
+                                        right_index[j] + 1, (new_wire, 0), False
+                                    )
+                                    left_element.InsertConnect(
+                                        left_index[i] + 1, (new_wire, -1), False
+                                    )
                                     new_wire.ConnectStartPoint(None, right_element)
                                     new_wire.ConnectEndPoint(None, left_element)
                     wires.reverse()
@@ -892,16 +988,33 @@ class LD_Viewer(Viewer):
                 self.RefreshVisibleElements()
                 self.Refresh(False)
             else:
-                message = wx.MessageDialog(self, _("The group of block must be coherent!"), _("Error"), wx.OK | wx.ICON_ERROR)
+                message = wx.MessageDialog(
+                    self,
+                    _("The group of block must be coherent!"),
+                    _("Error"),
+                    wx.OK | wx.ICON_ERROR,
+                )
                 message.ShowModal()
                 message.Destroy()
         else:
-            message = wx.MessageDialog(self, _("You must select the block or group of blocks around which a branch should be added!"), _("Error"), wx.OK | wx.ICON_ERROR)
+            message = wx.MessageDialog(
+                self,
+                _(
+                    "You must select the block or group of blocks around which a branch should be added!"
+                ),
+                _("Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
             message.ShowModal()
             message.Destroy()
 
     def AddLadderBlock(self):
-        message = wx.MessageDialog(self, _("This option isn't available yet!"), _("Warning"), wx.OK | wx.ICON_EXCLAMATION)
+        message = wx.MessageDialog(
+            self,
+            _("This option isn't available yet!"),
+            _("Warning"),
+            wx.OK | wx.ICON_EXCLAMATION,
+        )
         message.ShowModal()
         message.Destroy()
 
@@ -918,9 +1031,17 @@ class LD_Viewer(Viewer):
             old_bbox = rung.GetBoundingBox()
             connectors = contact.GetConnectors()
             input_wires = [wire for wire, _handle in connectors["inputs"][0].GetWires()]
-            output_wires = [wire for wire, _handle in connectors["outputs"][0].GetWires()]
-            left_elements = [(wire.EndConnected, wire.EndConnected.GetWireIndex(wire)) for wire in input_wires]
-            right_elements = [(wire.StartConnected, wire.StartConnected.GetWireIndex(wire)) for wire in output_wires]
+            output_wires = [
+                wire for wire, _handle in connectors["outputs"][0].GetWires()
+            ]
+            left_elements = [
+                (wire.EndConnected, wire.EndConnected.GetWireIndex(wire))
+                for wire in input_wires
+            ]
+            right_elements = [
+                (wire.StartConnected, wire.StartConnected.GetWireIndex(wire))
+                for wire in output_wires
+            ]
             for wire in input_wires:
                 wire.Clean()
                 rung.SelectElement(wire)
@@ -933,14 +1054,19 @@ class LD_Viewer(Viewer):
             contact.Clean()
             left_elements.reverse()
             right_elements.reverse()
-            powerrail = len(left_elements) == 1 and isinstance(left_elements[0][0].GetParentBlock(), LD_PowerRail)
+            powerrail = len(left_elements) == 1 and isinstance(
+                left_elements[0][0].GetParentBlock(), LD_PowerRail
+            )
             for left_element, left_index in left_elements:
                 for right_element, right_index in right_elements:
                     wire_removed = []
                     for wire, _handle in right_element.GetWires():
                         if wire.EndConnected == left_element:
                             wire_removed.append(wire)
-                        elif isinstance(wire.EndConnected.GetParentBlock(), LD_PowerRail) and powerrail:
+                        elif (
+                            isinstance(wire.EndConnected.GetParentBlock(), LD_PowerRail)
+                            and powerrail
+                        ):
                             left_powerrail = wire.EndConnected.GetParentBlock()
                             index = left_powerrail.GetConnectorIndex(wire.EndConnected)
                             left_powerrail.DeleteConnector(index)
@@ -1004,7 +1130,9 @@ class LD_Viewer(Viewer):
                     nbcoils += 1
             if nbcoils > 1:
                 connectors = coil.GetConnectors()
-                output_wires = [wire for wire, _handle in connectors["outputs"][0].GetWires()]
+                output_wires = [
+                    wire for wire, _handle in connectors["outputs"][0].GetWires()
+                ]
                 right_elements = [wire.StartConnected for wire in output_wires]
                 for wire in output_wires:
                     wire.Clean()
@@ -1033,9 +1161,13 @@ class LD_Viewer(Viewer):
                         self.RemoveWire(element)
                 for element in rung.GetElements():
                     if self.IsBlock(element):
-                        self.Controler.RemoveEditedElementInstance(self.TagName, element.GetId())
+                        self.Controler.RemoveEditedElementInstance(
+                            self.TagName, element.GetId()
+                        )
                         self.RemoveBlock(element)
-                self.Controler.RemoveEditedElementInstance(self.TagName, self.Comments[rungindex].GetId())
+                self.Controler.RemoveEditedElementInstance(
+                    self.TagName, self.Comments[rungindex].GetId()
+                )
                 self.RemoveComment(self.RungComments[rungindex])
                 self.RungComments.pop(rungindex)
                 self.Rungs.pop(rungindex)
@@ -1071,7 +1203,11 @@ class LD_Viewer(Viewer):
                         left_elements.append(w.EndConnected)
                     if w.StartConnected not in right_elements:
                         right_elements.append(w.StartConnected)
-                    if connections == (False, False) or connections == (False, True) and isinstance(left_block, LD_PowerRail):
+                    if (
+                        connections == (False, False)
+                        or connections == (False, True)
+                        and isinstance(left_block, LD_PowerRail)
+                    ):
                         w.Clean()
                         self.RemoveWire(w)
                         rung.SelectElement(w)
@@ -1085,7 +1221,9 @@ class LD_Viewer(Viewer):
                         connectors = left_block.GetConnectors()
                         for connector in connectors["outputs"]:
                             for lwire, _handle in connector.GetWires():
-                                self.RefreshPosition(lwire.StartConnected.GetParentBlock())
+                                self.RefreshPosition(
+                                    lwire.StartConnected.GetParentBlock()
+                                )
                 for right_element in right_elements:
                     self.RefreshPosition(right_element.GetParentBlock())
                 rung.RefreshBoundingBox()
@@ -1154,27 +1292,41 @@ class LD_Viewer(Viewer):
                         start_offset = endpoint.y - startpoint.y
                     offset = start_offset
                 else:
-                    offset = start_offset + LD_LINE_SIZE * CalcBranchSize(previous_blocks, blocks)
+                    offset = start_offset + LD_LINE_SIZE * CalcBranchSize(
+                        previous_blocks, blocks
+                    )
                 if block in block_list:
                     wires = wire.EndConnected.GetWires()
-                    endmiddlepoint = wires[0][0].StartConnected.GetPosition(False)[0] - LD_WIRE_SIZE
-                    points = [startpoint, wx.Point(middlepoint, startpoint.y),
-                              wx.Point(middlepoint, startpoint.y + offset),
-                              wx.Point(endmiddlepoint, startpoint.y + offset),
-                              wx.Point(endmiddlepoint, endpoint.y), endpoint]
+                    endmiddlepoint = (
+                        wires[0][0].StartConnected.GetPosition(False)[0] - LD_WIRE_SIZE
+                    )
+                    points = [
+                        startpoint,
+                        wx.Point(middlepoint, startpoint.y),
+                        wx.Point(middlepoint, startpoint.y + offset),
+                        wx.Point(endmiddlepoint, startpoint.y + offset),
+                        wx.Point(endmiddlepoint, endpoint.y),
+                        endpoint,
+                    ]
                 else:
                     if startpoint.y + offset != endpoint.y:
                         if isinstance(element, LD_PowerRail):
                             element.MoveConnector(connector, startpoint.y - endpoint.y)
                         elif isinstance(block, LD_PowerRail):
-                            block.MoveConnector(wire.EndConnected, startpoint.y - endpoint.y)
+                            block.MoveConnector(
+                                wire.EndConnected, startpoint.y - endpoint.y
+                            )
                         else:
                             block.Move(0, startpoint.y + offset - endpoint.y)
                             self.RefreshPosition(block, False)
                         endpoint = wire.EndConnected.GetPosition(False)
                     if not onlyone[i]:
-                        points = [startpoint, wx.Point(middlepoint, startpoint.y),
-                                  wx.Point(middlepoint, endpoint.y), endpoint]
+                        points = [
+                            startpoint,
+                            wx.Point(middlepoint, startpoint.y),
+                            wx.Point(middlepoint, endpoint.y),
+                            endpoint,
+                        ]
                     else:
                         points = [startpoint, endpoint]
                 wire.SetPoints(points, False)

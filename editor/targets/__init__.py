@@ -43,21 +43,32 @@ _base_path = paths.AbsDir(__file__)
 
 
 def _GetLocalTargetClassFactory(name):
-    return lambda: getattr(__import__(name, globals(), locals()), name+"_target")
+    return lambda: getattr(__import__(name, globals(), locals()), name + "_target")
 
 
-targets = dict([(name, {"xsd":   path.join(_base_path, name, "XSD"),
-                        "class": _GetLocalTargetClassFactory(name),
-                        "code":  {fname: path.join(_base_path, name, fname)
-                                  for fname in listdir(path.join(_base_path, name))
-                                  if (fname.startswith("plc_%s_main" % name) and
-                                      fname.endswith(".c"))}})
-                for name in listdir(_base_path)
-                if (path.isdir(path.join(_base_path, name)) and
-                    not name.startswith("__"))])
+targets = dict(
+    [
+        (
+            name,
+            {
+                "xsd": path.join(_base_path, name, "XSD"),
+                "class": _GetLocalTargetClassFactory(name),
+                "code": {
+                    fname: path.join(_base_path, name, fname)
+                    for fname in listdir(path.join(_base_path, name))
+                    if (fname.startswith("plc_%s_main" % name) and fname.endswith(".c"))
+                },
+            },
+        )
+        for name in listdir(_base_path)
+        if (path.isdir(path.join(_base_path, name)) and not name.startswith("__"))
+    ]
+)
 
-toolchains = {"gcc":  path.join(_base_path, "XSD_toolchain_gcc"),
-              "makefile":  path.join(_base_path, "XSD_toolchain_makefile")}
+toolchains = {
+    "gcc": path.join(_base_path, "XSD_toolchain_gcc"),
+    "makefile": path.join(_base_path, "XSD_toolchain_makefile"),
+}
 
 
 def GetBuilder(targetname):
@@ -69,15 +80,14 @@ def GetTargetChoices():
     targetchoices = ""
 
     # Get all xsd toolchains
-    for toolchainname, xsdfilename in toolchains.iteritems():
+    for toolchainname, xsdfilename in toolchains.items():
         if path.isfile(xsdfilename):
-            DictXSD_toolchain["toolchain_"+toolchainname] = open(xsdfilename).read()
+            DictXSD_toolchain["toolchain_" + toolchainname] = open(xsdfilename).read()
 
     # Get all xsd targets
-    for target_name, nfo in targets.iteritems():
+    for target_name, nfo in targets.items():
         xsd_string = open(nfo["xsd"]).read()
-        targetchoices += xsd_string % dict(DictXSD_toolchain,
-                                           target_name=target_name)
+        targetchoices += xsd_string % dict(DictXSD_toolchain, target_name=target_name)
 
     return targetchoices
 

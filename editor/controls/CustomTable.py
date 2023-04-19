@@ -27,7 +27,7 @@ from __future__ import absolute_import
 import wx
 import wx.grid
 
-if wx.Platform == '__WXMSW__':
+if wx.Platform == "__WXMSW__":
     ROW_HEIGHT = 20
 else:
     ROW_HEIGHT = 28
@@ -38,6 +38,7 @@ class CustomTable(wx.grid.PyGridTableBase):
     """
     A custom wx.grid.Grid Table using user supplied data
     """
+
     def __init__(self, parent, data, colnames):
         # The base class must be initialized *first*
         wx.grid.PyGridTableBase.__init__(self)
@@ -90,24 +91,24 @@ class CustomTable(wx.grid.PyGridTableBase):
         grid.CloseEditControl()
         grid.BeginBatch()
         for current, new, delmsg, addmsg in [
-                (
-                    self._rows,
-                    self.GetNumberRows(),
-                    wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                    wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED
-                ),
-                (
-                    self._cols,
-                    self.GetNumberCols(),
-                    wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
-                    wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED
-                ),
+            (
+                self._rows,
+                self.GetNumberRows(),
+                wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED,
+            ),
+            (
+                self._cols,
+                self.GetNumberCols(),
+                wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
+                wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED,
+            ),
         ]:
             if new < current:
-                msg = wx.grid.GridTableMessage(self, delmsg, new, current-new)
+                msg = wx.grid.GridTableMessage(self, delmsg, new, current - new)
                 grid.ProcessTableMessage(msg)
             elif new > current:
-                msg = wx.grid.GridTableMessage(self, addmsg, new-current)
+                msg = wx.grid.GridTableMessage(self, addmsg, new - current)
                 grid.ProcessTableMessage(msg)
                 self.UpdateValues(grid)
         grid.EndBatch()
@@ -143,7 +144,9 @@ class CustomTable(wx.grid.PyGridTableBase):
                 grid.SetCellEditor(row, col, None)
                 grid.SetCellRenderer(row, col, None)
 
-                highlight_colours = row_highlights.get(colname.lower(), [(wx.WHITE, wx.BLACK)])[-1]
+                highlight_colours = row_highlights.get(
+                    colname.lower(), [(wx.WHITE, wx.BLACK)]
+                )[-1]
                 grid.SetCellBackgroundColour(row, col, highlight_colours[0])
                 grid.SetCellTextColour(row, col, highlight_colours[1])
             self.ResizeRow(grid, row)
@@ -204,7 +207,7 @@ class CustomTable(wx.grid.PyGridTableBase):
         if highlight_type is None:
             self.Highlights = {}
         else:
-            for _row, row_highlights in self.Highlights.iteritems():
+            for _row, row_highlights in self.Highlights.items():
                 row_items = row_highlights.items()
                 for col, col_highlights in row_items:
                     if highlight_type in col_highlights:

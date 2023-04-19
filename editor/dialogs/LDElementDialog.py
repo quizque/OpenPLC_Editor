@@ -27,9 +27,18 @@
 from __future__ import absolute_import
 import wx
 
-from graphics.GraphicCommons import CONTACT_NORMAL, CONTACT_REVERSE, \
-    CONTACT_RISING, CONTACT_FALLING, COIL_NORMAL, COIL_REVERSE, COIL_SET, \
-    COIL_RESET, COIL_RISING, COIL_FALLING
+from graphics.GraphicCommons import (
+    CONTACT_NORMAL,
+    CONTACT_REVERSE,
+    CONTACT_RISING,
+    CONTACT_FALLING,
+    COIL_NORMAL,
+    COIL_REVERSE,
+    COIL_SET,
+    COIL_RESET,
+    COIL_RISING,
+    COIL_FALLING,
+)
 from graphics.LD_Objects import LD_Contact, LD_Coil
 from dialogs.BlockPreviewDialog import BlockPreviewDialog
 
@@ -52,36 +61,48 @@ class LDElementDialog(BlockPreviewDialog):
         @param tagname: Tagname of project POU edited
         @param type: Type of LD element ('contact or 'coil')
         """
-        BlockPreviewDialog.__init__(self, parent, controller, tagname,
-                                    title=(_("Edit Contact Values")
-                                           if type == "contact"
-                                           else _("Edit Coil Values")))
+        BlockPreviewDialog.__init__(
+            self,
+            parent,
+            controller,
+            tagname,
+            title=(
+                _("Edit Contact Values") if type == "contact" else _("Edit Coil Values")
+            ),
+        )
 
         # Init common sizers
-        self._init_sizers(2, 0, (7 if type == "contact" else 9),
-                          None, 2, 1)
+        self._init_sizers(2, 0, (7 if type == "contact" else 9), None, 2, 1)
 
         # Create label for LD element modifier
-        modifier_label = wx.StaticText(self, label=_('Modifier:'))
-        self.LeftGridSizer.AddWindow(modifier_label, border=5,
-                                     flag=wx.GROW | wx.BOTTOM)
+        modifier_label = wx.StaticText(self, label=_("Modifier:"))
+        self.LeftGridSizer.AddWindow(modifier_label, border=5, flag=wx.GROW | wx.BOTTOM)
 
         # Create radio buttons for selecting LD element modifier
         self.ModifierRadioButtons = {}
         first = True
-        element_modifiers = ([CONTACT_NORMAL, CONTACT_REVERSE,
-                              CONTACT_RISING, CONTACT_FALLING]
-                             if type == "contact"
-                             else [COIL_NORMAL, COIL_REVERSE, COIL_SET,
-                                   COIL_RESET, COIL_RISING, COIL_FALLING])
-        modifiers_label = \
-            [_("Normal"), _("Negated")] + \
-            ([_("Set"), _("Reset")] if type == "coil" else []) + \
-            [_("Rising Edge"), _("Falling Edge")]
+        element_modifiers = (
+            [CONTACT_NORMAL, CONTACT_REVERSE, CONTACT_RISING, CONTACT_FALLING]
+            if type == "contact"
+            else [
+                COIL_NORMAL,
+                COIL_REVERSE,
+                COIL_SET,
+                COIL_RESET,
+                COIL_RISING,
+                COIL_FALLING,
+            ]
+        )
+        modifiers_label = (
+            [_("Normal"), _("Negated")]
+            + ([_("Set"), _("Reset")] if type == "coil" else [])
+            + [_("Rising Edge"), _("Falling Edge")]
+        )
 
         for modifier, label in zip(element_modifiers, modifiers_label):
-            radio_button = wx.RadioButton(self, label=label,
-                                          style=(wx.RB_GROUP if first else 0))
+            radio_button = wx.RadioButton(
+                self, label=label, style=(wx.RB_GROUP if first else 0)
+            )
             radio_button.SetValue(first)
             self.Bind(wx.EVT_RADIOBUTTON, self.OnModifierChanged, radio_button)
             self.LeftGridSizer.AddWindow(radio_button, flag=wx.GROW)
@@ -89,38 +110,40 @@ class LDElementDialog(BlockPreviewDialog):
             first = False
 
         # Create label for LD element variable
-        element_variable_label = wx.StaticText(self, label=_('Variable:'))
-        self.LeftGridSizer.AddWindow(element_variable_label, border=5,
-                                     flag=wx.GROW | wx.TOP)
+        element_variable_label = wx.StaticText(self, label=_("Variable:"))
+        self.LeftGridSizer.AddWindow(
+            element_variable_label, border=5, flag=wx.GROW | wx.TOP
+        )
 
         # Create a combo box for defining LD element variable
         self.ElementVariable = wx.ComboBox(self, style=wx.CB_SORT)
-        self.Bind(wx.EVT_COMBOBOX, self.OnVariableChanged,
-                  self.ElementVariable)
-        self.Bind(wx.EVT_TEXT, self.OnVariableChanged,
-                  self.ElementVariable)
-        self.LeftGridSizer.AddWindow(self.ElementVariable, border=5,
-                                     flag=wx.GROW | wx.TOP)
+        self.Bind(wx.EVT_COMBOBOX, self.OnVariableChanged, self.ElementVariable)
+        self.Bind(wx.EVT_TEXT, self.OnVariableChanged, self.ElementVariable)
+        self.LeftGridSizer.AddWindow(
+            self.ElementVariable, border=5, flag=wx.GROW | wx.TOP
+        )
 
         # Add preview panel and associated label to sizers
         self.RightGridSizer.AddWindow(self.PreviewLabel, flag=wx.GROW)
         self.RightGridSizer.AddWindow(self.Preview, flag=wx.GROW)
 
         # Add buttons sizer to sizers
-        self.MainSizer.AddSizer(self.ButtonSizer, border=20,
-                                flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT)
+        self.MainSizer.AddSizer(
+            self.ButtonSizer,
+            border=20,
+            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+        )
 
         # Save LD element class
-        self.ElementClass = (LD_Contact if type == "contact" else LD_Coil)
+        self.ElementClass = LD_Contact if type == "contact" else LD_Coil
 
         # Extract list of variables defined in POU
         self.RefreshVariableList()
 
         # Set values in ElementVariable
-        for name, (var_type, value_type) in self.VariableList.iteritems():
+        for name, (var_type, value_type) in self.VariableList.items():
             # Only select BOOL variable and avoid input for coil
-            if (type == "contact" or var_type != "Input") and \
-               value_type == "BOOL":
+            if (type == "contact" or var_type != "Input") and value_type == "BOOL":
                 self.ElementVariable.Append(name)
 
         self.Fit()
@@ -134,7 +157,7 @@ class LDElementDialog(BlockPreviewDialog):
         """
         # Go through radio buttons and return modifier associated to the one
         # that is selected
-        for modifier, control in self.ModifierRadioButtons.iteritems():
+        for modifier, control in self.ModifierRadioButtons.items():
             if control.GetValue():
                 return modifier
         return None
@@ -146,7 +169,6 @@ class LDElementDialog(BlockPreviewDialog):
         """
         # For each parameters defined, set corresponding control value
         for name, value in values.items():
-
             # Parameter is LD element variable
             if name == "variable":
                 self.ElementVariable.SetValue(value)
@@ -165,7 +187,8 @@ class LDElementDialog(BlockPreviewDialog):
         """
         values = {
             "variable": self.ElementVariable.GetValue(),
-            "modifier": self.GetElementModifier()}
+            "modifier": self.GetElementModifier(),
+        }
         values["width"], values["height"] = self.Element.GetSize()
         return values
 
@@ -193,10 +216,7 @@ class LDElementDialog(BlockPreviewDialog):
         value = self.ElementVariable.GetValue()
 
         # Set graphic element displayed, creating a LD element
-        self.Element = self.ElementClass(
-            self.Preview,
-            self.GetElementModifier(),
-            value)
+        self.Element = self.ElementClass(self.Preview, self.GetElementModifier(), value)
 
         button = self.ButtonSizer.GetAffirmativeButton()
         button.Enable(value != "")

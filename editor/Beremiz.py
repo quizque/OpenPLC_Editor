@@ -28,7 +28,6 @@ from __future__ import print_function
 import os
 import sys
 import getopt
-from past.builtins import execfile
 
 import wx
 from wx.lib.agw.advancedsplash import AdvancedSplash, AS_NOTIMEOUT, AS_CENTER_ON_SCREEN
@@ -60,8 +59,12 @@ class BeremizIDELauncher(object):
         print("")
         print("Supported options:")
         print("-h --help                    Print this help")
-        print("-u --updatecheck URL         Retrieve update information by checking URL")
-        print("-e --extend PathToExtension  Extend IDE functionality by loading at start additional extensions")
+        print(
+            "-u --updatecheck URL         Retrieve update information by checking URL"
+        )
+        print(
+            "-e --extend PathToExtension  Extend IDE functionality by loading at start additional extensions"
+        )
         print("")
         print("")
 
@@ -81,7 +84,9 @@ class BeremizIDELauncher(object):
     def ProcessCommandLineArgs(self):
         self.SetCmdOptions()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], self.shortCmdOpts, self.longCmdOpts)
+            opts, args = getopt.getopt(
+                sys.argv[1:], self.shortCmdOpts, self.longCmdOpts
+            )
         except getopt.GetoptError:
             # print help information and exit:
             self.Usage()
@@ -102,7 +107,6 @@ class BeremizIDELauncher(object):
             self.buildpath = args[1]
 
     def CreateApplication(self):
-
         BeremizAppType = wx.App if wx.VERSION >= (3, 0, 0) else wx.PySimpleApp
 
         class BeremizApp(BeremizAppType):
@@ -111,7 +115,7 @@ class BeremizIDELauncher(object):
                 return True
 
         self.app = BeremizApp(redirect=self.debug)
-        self.app.SetAppName('beremiz')
+        self.app.SetAppName("beremiz")
         if wx.VERSION < (3, 0, 0):
             wx.InitAllImageHandlers()
 
@@ -124,10 +128,11 @@ class BeremizIDELauncher(object):
                 if not _self.Painted:  # trigger app start only once
                     _self.Painted = True
                     wx.CallAfter(self.AppStart)
+
         bmp = wx.Image(self.splashPath).ConvertToBitmap()
-        self.splash = Splash(None,
-                             bitmap=bmp,
-                             agwStyle=AS_NOTIMEOUT | AS_CENTER_ON_SCREEN)
+        self.splash = Splash(
+            None, bitmap=bmp, agwStyle=AS_NOTIMEOUT | AS_CENTER_ON_SCREEN
+        )
 
     def BackgroundInitialization(self):
         self.InitI18n()
@@ -137,6 +142,7 @@ class BeremizIDELauncher(object):
 
     def InitI18n(self):
         from util.misc import InstallLocalRessources
+
         InstallLocalRessources(self.app_dir)
 
     def globals(self):
@@ -150,11 +156,14 @@ class BeremizIDELauncher(object):
         for extfilename in self.extensions:
             from util.TranslationCatalogs import AddCatalog
             from util.BitmapLibrary import AddBitmapFolder
+
             extension_folder = os.path.split(os.path.realpath(extfilename))[0]
             sys.path.append(extension_folder)
             AddCatalog(os.path.join(extension_folder, "locale"))
             AddBitmapFolder(os.path.join(extension_folder, "images"))
-            execfile(extfilename, self.globals())
+            with open(extfilename) as f:
+                code = compile(f.read(), "somefile.py", "exec")
+                exec(code, self.globals())
 
     def CheckUpdates(self):
         if self.updateinfo_url is not None:
@@ -163,11 +172,13 @@ class BeremizIDELauncher(object):
             def updateinfoproc():
                 try:
                     import urllib2
+
                     self.updateinfo = urllib2.urlopen(self.updateinfo_url, None).read()
                 except Exception:
                     self.updateinfo = _("update info unavailable.")
 
             from threading import Thread
+
             self.splash.SetText(text=self.updateinfo)
             updateinfoThread = Thread(target=updateinfoproc)
             updateinfoThread.start()
@@ -182,6 +193,7 @@ class BeremizIDELauncher(object):
     def InstallExceptionHandler(self):
         import version
         import util.ExceptionHandler
+
         self.handle_exception = util.ExceptionHandler.AddExceptHook(version.app_version)
 
     def CreateUI(self):
@@ -221,6 +233,6 @@ class BeremizIDELauncher(object):
         self.MainLoop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     beremiz = BeremizIDELauncher()
     beremiz.Start()

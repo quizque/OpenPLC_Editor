@@ -49,14 +49,15 @@ class SFCStepDialog(BlockPreviewDialog):
         @param tagname: Tagname of project POU edited
         @param initial: True if step is initial (default: False)
         """
-        BlockPreviewDialog.__init__(self, parent, controller, tagname,
-                                    title=_('Edit Step'))
+        BlockPreviewDialog.__init__(
+            self, parent, controller, tagname, title=_("Edit Step")
+        )
 
         # Init common sizers
         self._init_sizers(2, 0, 6, None, 2, 1)
 
         # Create label for SFC step name
-        name_label = wx.StaticText(self, label=_('Name:'))
+        name_label = wx.StaticText(self, label=_("Name:"))
         self.LeftGridSizer.AddWindow(name_label, flag=wx.GROW)
 
         # Create text control for defining SFC step name
@@ -65,14 +66,16 @@ class SFCStepDialog(BlockPreviewDialog):
         self.LeftGridSizer.AddWindow(self.StepName, flag=wx.GROW)
 
         # Create label for SFC step connectors
-        connectors_label = wx.StaticText(self, label=_('Connectors:'))
+        connectors_label = wx.StaticText(self, label=_("Connectors:"))
         self.LeftGridSizer.AddWindow(connectors_label, flag=wx.GROW)
 
         # Create check boxes for defining connectors available on SFC step
         self.ConnectorsCheckBox = {}
-        for name, label in [("input", _("Input")),
-                            ("output", _("Output")),
-                            ("action", _("Action"))]:
+        for name, label in [
+            ("input", _("Input")),
+            ("output", _("Output")),
+            ("action", _("Action")),
+        ]:
             check_box = wx.CheckBox(self, label=label)
             if name == "output" or (name == "input" and not initial):
                 check_box.SetValue(True)
@@ -86,15 +89,18 @@ class SFCStepDialog(BlockPreviewDialog):
 
         # Add buttons sizer to sizers
         self.MainSizer.AddSizer(
-            self.ButtonSizer, border=20,
-            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT)
+            self.ButtonSizer,
+            border=20,
+            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+        )
 
         # Save flag that indicates that step is initial
         self.Initial = initial
 
         # Set default name for step
-        self.StepName.ChangeValue(controller.GenerateNewName(
-            tagname, None, "Step%d", 0))
+        self.StepName.ChangeValue(
+            controller.GenerateNewName(tagname, None, "Step%d", 0)
+        )
 
         self.Fit()
 
@@ -108,7 +114,6 @@ class SFCStepDialog(BlockPreviewDialog):
         """
         # For each parameters defined, set corresponding control value
         for name, value in values.items():
-
             # Parameter is step name
             if name == "name":
                 self.StepName.ChangeValue(value)
@@ -128,9 +133,12 @@ class SFCStepDialog(BlockPreviewDialog):
         @return: {parameter_name: parameter_value,...}
         """
         values = {"name": self.StepName.GetValue()}
-        values.update({
-            name: control.IsChecked()
-            for name, control in self.ConnectorsCheckBox.iteritems()})
+        values.update(
+            {
+                name: control.IsChecked()
+                for name, control in self.ConnectorsCheckBox.items()
+            }
+        )
         values["width"], values["height"] = self.Element.GetSize()
         return values
 
@@ -180,12 +188,10 @@ class SFCStepDialog(BlockPreviewDialog):
         Override BlockPreviewDialog function
         """
         # Set graphic element displayed, creating a SFC step element
-        self.Element = SFC_Step(self.Preview,
-                                self.StepName.GetValue(),
-                                self.Initial)
+        self.Element = SFC_Step(self.Preview, self.StepName.GetValue(), self.Initial)
 
         # Update connectors of SFC step element according to check boxes value
-        for name, control in self.ConnectorsCheckBox.iteritems():
+        for name, control in self.ConnectorsCheckBox.items():
             if control.IsChecked():
                 getattr(self.Element, "Add" + name.capitalize())()
             else:

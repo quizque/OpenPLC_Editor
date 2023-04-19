@@ -40,22 +40,23 @@ Max_Traceback_List_Size = 20
 def Display_Exception_Dialog(e_type, e_value, e_tb, bug_report_path, exit):
     trcbck_lst = []
     for i, line in enumerate(traceback.extract_tb(e_tb)):
-        trcbck = " " + str(i+1) + ". "
+        trcbck = " " + str(i + 1) + ". "
         if line[0].find(os.getcwd()) == -1:
             trcbck += "file : " + str(line[0]) + ",   "
         else:
-            trcbck += "file : " + str(line[0][len(os.getcwd()):]) + ",   "
+            trcbck += "file : " + str(line[0][len(os.getcwd()) :]) + ",   "
         trcbck += "line : " + str(line[1]) + ",   " + "function : " + str(line[2])
         trcbck_lst.append(trcbck)
 
     # Allow clicking....
-    cap = wx.Window_GetCapture()
-    if cap:
-        cap.ReleaseMouse()
+    # cap = wx.Window_GetCapture()
+    # if cap:
+    #     cap.ReleaseMouse()
 
     dlg = wx.SingleChoiceDialog(
         None,
-        _("""
+        _(
+            """
 An unhandled exception (bug) occured. Bug report saved at :
 (%s)
 
@@ -65,12 +66,17 @@ under section "Bug Reports" with a brief description of what
 you were doing at the moment of this exception.
 
 Traceback:
-""") % bug_report_path +
-        repr(e_type) + " : " + repr(e_value),
+"""
+        )
+        % bug_report_path
+        + repr(e_type)
+        + " : "
+        + repr(e_value),
         _("Error"),
-        trcbck_lst)
+        trcbck_lst,
+    )
     try:
-        res = (dlg.ShowModal() == wx.ID_OK)
+        res = dlg.ShowModal() == wx.ID_OK
     finally:
         dlg.Destroy()
 
@@ -86,59 +92,81 @@ def get_last_traceback(tb):
     return tb
 
 
-def format_namespace(d, indent='    '):
-    return '\n'.join(['%s%s: %s' % (indent, k, repr(v)[:10000]) for k, v in d.iteritems()])
+def format_namespace(d, indent="    "):
+    return "\n".join(["%s%s: %s" % (indent, k, repr(v)[:10000]) for k, v in d.items()])
 
 
-ignored_exceptions = []  # a problem with a line in a module is only reported once per session
+ignored_exceptions = (
+    []
+)  # a problem with a line in a module is only reported once per session
 
 
-def AddExceptHook(app_version='[No version]'):
-
+def AddExceptHook(app_version="[No version]"):
     def save_bug_report(e_type, e_value, e_traceback, bug_report_path, date):
         info = {
-            'app-title': wx.GetApp().GetAppName(),
-            'app-version': app_version,
-            'wx-version': wx.VERSION_STRING,
-            'wx-platform': wx.Platform,
-            'python-version': platform.python_version(),
-            'platform': platform.platform(),
-            'e-type': e_type,
-            'e-value': e_value,
-            'date': date,
-            'cwd': os.getcwd(),
+            "app-title": wx.GetApp().GetAppName(),
+            "app-version": app_version,
+            "wx-version": wx.VERSION_STRING,
+            "wx-platform": wx.Platform,
+            "python-version": platform.python_version(),
+            "platform": platform.platform(),
+            "e-type": e_type,
+            "e-value": e_value,
+            "date": date,
+            "cwd": os.getcwd(),
         }
         if e_traceback:
-            info['traceback'] = ''.join(traceback.format_tb(e_traceback)) + '%s: %s' % (e_type, e_value)
+            info["traceback"] = "".join(traceback.format_tb(e_traceback)) + "%s: %s" % (
+                e_type,
+                e_value,
+            )
             last_tb = get_last_traceback(e_traceback)
-            exception_locals = last_tb.tb_frame.f_locals  # the locals at the level of the stack trace where the exception actually occurred
-            info['locals'] = format_namespace(exception_locals)
-            if 'self' in exception_locals:
+            exception_locals = (
+                last_tb.tb_frame.f_locals
+            )  # the locals at the level of the stack trace where the exception actually occurred
+            info["locals"] = format_namespace(exception_locals)
+            if "self" in exception_locals:
                 try:
-                    info['self'] = format_namespace(exception_locals['self'].__dict__)
+                    info["self"] = format_namespace(exception_locals["self"].__dict__)
                 except Exception:
                     pass
         path = os.path.dirname(bug_report_path)
         if not os.path.exists(path):
             os.mkdir(path)
-        output = open(bug_report_path, 'w')
+        output = open(bug_report_path, "w")
         lst = info.keys()
-        lst.sort()
+        lst = sorted(lst)
         for a in lst:
             output.write(a + ":\n" + str(info[a]) + "\n\n")
         output.close()
 
     def handle_exception(e_type, e_value, e_traceback, exit=False):
-        traceback.print_exception(e_type, e_value, e_traceback)  # this is very helpful when there's an exception in the rest of this func
+        traceback.print_exception(
+            e_type, e_value, e_traceback
+        )  # this is very helpful when there's an exception in the rest of this func
         last_tb = get_last_traceback(e_traceback)
         ex = (last_tb.tb_frame.f_code.co_filename, last_tb.tb_frame.f_lineno)
         if ex not in ignored_exceptions:
             ignored_exceptions.append(ex)
             date = time.ctime()
-            path = tempfile.gettempdir()+os.sep+wx.GetApp().GetAppName()
-            bug_report_path = path + os.sep + "bug_report_" + time.strftime("%Y_%m_%d__%H-%M-%S") + ".txt"
+            path = tempfile.gettempdir() + os.sep + wx.GetApp().GetAppName()
+            bug_report_path = (
+                path
+                + os.sep
+                + "bug_report_"
+                + time.strftime("%Y_%m_%d__%H-%M-%S")
+                + ".txt"
+            )
             save_bug_report(e_type, e_value, e_traceback, bug_report_path, date)
-            wx.CallAfter(Display_Exception_Dialog, e_type, e_value, e_traceback, bug_report_path, exit)
+            wx.CallAfter(
+                Display_Exception_Dialog,
+                e_type,
+                e_value,
+                e_traceback,
+                bug_report_path,
+                exit,
+            )
+
     # sys.excepthook = lambda *args: wx.CallAfter(handle_exception, *args)
     sys.excepthook = handle_exception
 
@@ -155,7 +183,9 @@ def AddExceptHook(app_version='[No version]'):
                 raise
             except Exception:
                 sys.excepthook(*sys.exc_info())
+
         self.run = run_with_except_hook
+
     threading.Thread.__init__ = init
 
     return handle_exception

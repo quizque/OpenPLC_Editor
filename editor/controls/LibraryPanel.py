@@ -67,8 +67,9 @@ class LibraryPanel(wx.Panel):
         # control is for searching in tree
         self.SearchCtrl.ShowSearchButton(True)
         self.Bind(wx.EVT_TEXT, self.OnSearchCtrlChanged, self.SearchCtrl)
-        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN,
-                  self.OnSearchButtonClick, self.SearchCtrl)
+        self.Bind(
+            wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearchButtonClick, self.SearchCtrl
+        )
         # Bind keyboard event on SearchCtrl text control to catch UP and DOWN
         # for search previous and next occurrence
 
@@ -77,22 +78,26 @@ class LibraryPanel(wx.Panel):
             search_textctrl = self.SearchCtrl.GetChildren()[0]
             search_textctrl.Bind(wx.EVT_CHAR, self.OnKeyDown)
 
-        main_sizer.AddWindow(self.SearchCtrl, flag=wx.GROW)
+        main_sizer.Add(self.SearchCtrl, flag=wx.GROW)
 
         # Add Splitter window for tree and block comment to main sizer
         splitter_window = wx.SplitterWindow(self)
         splitter_window.SetSashGravity(1.0)
-        main_sizer.AddWindow(splitter_window, flag=wx.GROW)
+        main_sizer.Add(splitter_window, flag=wx.GROW)
 
         # Add TreeCtrl for functions and function blocks library in splitter
         # window
-        self.Tree = wx.TreeCtrl(splitter_window,
-                                size=wx.Size(0, 0),
-                                style=(wx.TR_HAS_BUTTONS |
-                                       wx.TR_SINGLE |
-                                       wx.SUNKEN_BORDER |
-                                       wx.TR_HIDE_ROOT |
-                                       wx.TR_LINES_AT_ROOT))
+        self.Tree = wx.TreeCtrl(
+            splitter_window,
+            size=wx.Size(0, 0),
+            style=(
+                wx.TR_HAS_BUTTONS
+                | wx.TR_SINGLE
+                | wx.SUNKEN_BORDER
+                | wx.TR_HIDE_ROOT
+                | wx.TR_LINES_AT_ROOT
+            ),
+        )
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeItemSelected, self.Tree)
         self.Tree.Bind(wx.EVT_CHAR, self.OnKeyDown)
         # If drag'n drop is enabled, bind event generated when a drag begins on
@@ -101,8 +106,9 @@ class LibraryPanel(wx.Panel):
             self.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnTreeBeginDrag, self.Tree)
 
         # Add TextCtrl for function and function block informations
-        self.Comment = wx.TextCtrl(splitter_window, size=wx.Size(0, 80),
-                                   style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.Comment = wx.TextCtrl(
+            splitter_window, size=wx.Size(0, 80), style=wx.TE_READONLY | wx.TE_MULTILINE
+        )
 
         splitter_window.SplitHorizontally(self.Tree, self.Comment, -80)
 
@@ -173,16 +179,17 @@ class LibraryPanel(wx.Panel):
 
             # Get current selected item for selected it when values refreshed
             selected_item = self.Tree.GetSelection()
-            selected_pydata = (self.Tree.GetPyData(selected_item)
-                               if (selected_item.IsOk() and
-                                   selected_item != self.Tree.GetRootItem())
-                               else None)
+            selected_pydata = (
+                self.Tree.GetPyData(selected_item)
+                if (selected_item.IsOk() and selected_item != self.Tree.GetRootItem())
+                else None
+            )
             # Don't save selected item if it is a category
-            selected_infos = ((self.Tree.GetItemText(selected_item),
-                               selected_pydata["inputs"])
-                              if (selected_pydata is not None and
-                                  selected_pydata["type"] == BLOCK)
-                              else (None, None))
+            selected_infos = (
+                (self.Tree.GetItemText(selected_item), selected_pydata["inputs"])
+                if (selected_pydata is not None and selected_pydata["type"] == BLOCK)
+                else (None, None)
+            )
 
             # Get TreeCtrl root item (hidden)
             root = self.Tree.GetRootItem()
@@ -210,9 +217,10 @@ class LibraryPanel(wx.Panel):
                     category_item = self.Tree.AppendItem(root, _(category_name))
                     # On Windows, needs to get next child of root to have a
                     # reference to the newly added tree item
-                    if wx.Platform != '__WXMSW__':
-                        category_item, root_cookie = \
-                            self.Tree.GetNextChild(root, root_cookie)
+                    if wx.Platform != "__WXMSW__":
+                        category_item, root_cookie = self.Tree.GetNextChild(
+                            root, root_cookie
+                        )
 
                 # Set data associated to tree item (only save that item is a
                 # category)
@@ -223,10 +231,8 @@ class LibraryPanel(wx.Panel):
                 # them
 
                 # Get first child under category tree item
-                blocktype_item, category_cookie = \
-                    self.Tree.GetFirstChild(category_item)
+                blocktype_item, category_cookie = self.Tree.GetFirstChild(category_item)
                 for blocktype in category["list"]:
-
                     # Tree item already exists, set item label
                     if blocktype_item.IsOk():
                         self.Tree.SetItemText(blocktype_item, blocktype["name"])
@@ -234,57 +240,60 @@ class LibraryPanel(wx.Panel):
                     # Tree item doesn't exist, add new one to category item
                     else:
                         blocktype_item = self.Tree.AppendItem(
-                            category_item, blocktype["name"])
+                            category_item, blocktype["name"]
+                        )
                         # See comment when adding category
-                        if wx.Platform != '__WXMSW__':
-                            blocktype_item, category_cookie = \
-                                self.Tree.GetNextChild(category_item,
-                                                       category_cookie)
+                        if wx.Platform != "__WXMSW__":
+                            blocktype_item, category_cookie = self.Tree.GetNextChild(
+                                category_item, category_cookie
+                            )
 
                     # Define data to associate to block tree item
                     comment = blocktype["comment"]
                     block_data = {
-                        "type":       BLOCK,
+                        "type": BLOCK,
                         "block_type": blocktype["type"],
-                        "inputs":     tuple([type
-                                             for _name, type, _modifier
-                                             in blocktype["inputs"]]),
-                        "extension":  (len(blocktype["inputs"])
-                                       if blocktype["extensible"] else None),
-                        "comment":    _(comment) + blocktype.get("usage", "")
+                        "inputs": tuple(
+                            [type for _name, type, _modifier in blocktype["inputs"]]
+                        ),
+                        "extension": (
+                            len(blocktype["inputs"])
+                            if blocktype["extensible"]
+                            else None
+                        ),
+                        "comment": _(comment) + blocktype.get("usage", ""),
                     }
                     self.Tree.SetPyData(blocktype_item, block_data)
 
                     # Select block tree item in tree if it corresponds to
                     # previously selected one
-                    if selected_infos == (blocktype["name"],
-                                          blocktype["inputs"]):
+                    if selected_infos == (blocktype["name"], blocktype["inputs"]):
                         self.Tree.SelectItem(blocktype_item)
 
                         # Update TextCtrl value
                         self.Comment.SetValue(block_data["comment"])
 
                     # Get next block tree item under category tree item
-                    blocktype_item, category_cookie = \
-                        self.Tree.GetNextChild(category_item, category_cookie)
+                    blocktype_item, category_cookie = self.Tree.GetNextChild(
+                        category_item, category_cookie
+                    )
 
                 # Add every remaining tree item under category tree item after
                 # updating all block items to the list of items to delete
                 while blocktype_item.IsOk():
                     items_to_delete.append(blocktype_item)
-                    blocktype_item, category_cookie = \
-                        self.Tree.GetNextChild(category_item, category_cookie)
+                    blocktype_item, category_cookie = self.Tree.GetNextChild(
+                        category_item, category_cookie
+                    )
 
                 # Get next category tree item under root item
-                category_item, root_cookie = \
-                    self.Tree.GetNextChild(root, root_cookie)
+                category_item, root_cookie = self.Tree.GetNextChild(root, root_cookie)
 
             # Add every remaining tree item under root item after updating all
             # category items to the list of items to delete
             while category_item.IsOk():
                 items_to_delete.append(category_item)
-                category_item, root_cookie = \
-                    self.Tree.GetNextChild(root, root_cookie)
+                category_item, root_cookie = self.Tree.GetNextChild(root, root_cookie)
 
             # Remove all items in list of items to delete from TreeCtrl
             for item in items_to_delete:
@@ -298,17 +307,21 @@ class LibraryPanel(wx.Panel):
         """
         # Get selected item associated data in tree
         selected_item = self.Tree.GetSelection()
-        selected_pydata = (self.Tree.GetPyData(selected_item)
-                           if (selected_item.IsOk() and
-                               selected_item != self.Tree.GetRootItem())
-                           else None)
+        selected_pydata = (
+            self.Tree.GetPyData(selected_item)
+            if (selected_item.IsOk() and selected_item != self.Tree.GetRootItem())
+            else None
+        )
 
         # Return value is None if selected tree item is root or a category
-        return ({"type": self.Tree.GetItemText(selected_item),
-                 "inputs": selected_pydata["inputs"]}
-                if (selected_pydata is not None and
-                    selected_pydata["type"] == BLOCK)
-                else None)
+        return (
+            {
+                "type": self.Tree.GetItemText(selected_item),
+                "inputs": selected_pydata["inputs"],
+            }
+            if (selected_pydata is not None and selected_pydata["type"] == BLOCK)
+            else None
+        )
 
     def SelectTreeItem(self, name, inputs):
         """
@@ -347,12 +360,18 @@ class LibraryPanel(wx.Panel):
                 same_inputs = reduce(
                     lambda x, y: x and y,
                     map(
-                        lambda x: x[0] == x[1] or x[0] == 'ANY' or x[1] == 'ANY',
-                        zip(type_inputs,
-                            (inputs[:type_extension]
-                             if type_extension is not None
-                             else inputs))),
-                    True)
+                        lambda x: x[0] == x[1] or x[0] == "ANY" or x[1] == "ANY",
+                        zip(
+                            type_inputs,
+                            (
+                                inputs[:type_extension]
+                                if type_extension is not None
+                                else inputs
+                            ),
+                        ),
+                    ),
+                    True,
+                )
             else:
                 same_inputs = True
 
@@ -385,9 +404,9 @@ class LibraryPanel(wx.Panel):
 
         # Set function to navigate in Tree item sibling according to search
         # mode defined
-        sibling_function = (self.Tree.GetPrevSibling
-                            if mode == "previous"
-                            else self.Tree.GetNextSibling)
+        sibling_function = (
+            self.Tree.GetPrevSibling if mode == "previous" else self.Tree.GetNextSibling
+        )
 
         # Get current selected item (for next and previous mode)
         item = self.Tree.GetSelection()
@@ -400,25 +419,24 @@ class LibraryPanel(wx.Panel):
         # Navigate through tree items until one matching found or reach tree
         # starting or ending
         while item.IsOk():
-
             # Get item data to get item type
             item_pydata = self.Tree.GetPyData(item)
 
             # Item is a block category
             if (item == root) or item_pydata["type"] == CATEGORY:
-
                 # Get category first or last child according to search mode
                 # defined
-                child = (self.Tree.GetLastChild(item)
-                         if mode == "previous"
-                         else self.Tree.GetFirstChild(item)[0])
+                child = (
+                    self.Tree.GetLastChild(item)
+                    if mode == "previous"
+                    else self.Tree.GetFirstChild(item)[0]
+                )
 
                 # If category has no child, go to sibling category
-                item = (child if child.IsOk() else sibling_function(item))
+                item = child if child.IsOk() else sibling_function(item)
 
             # Item is a block
             else:
-
                 # Extract item block name
                 name = self.Tree.GetItemText(item)
                 # Test if block name contains string given
@@ -437,9 +455,11 @@ class LibraryPanel(wx.Panel):
                 next = sibling_function(item)
 
                 # If category has no other child, go to next category sibling
-                item = (next
-                        if next.IsOk()
-                        else sibling_function(self.Tree.GetItemParent(item)))
+                item = (
+                    next
+                    if next.IsOk()
+                    else sibling_function(self.Tree.GetItemParent(item))
+                )
 
         return False
 
@@ -471,7 +491,8 @@ class LibraryPanel(wx.Panel):
         self.Comment.SetValue(
             item_pydata["comment"]
             if item_pydata is not None and item_pydata["type"] == BLOCK
-            else "")
+            else ""
+        )
 
         # Call extra function defined when tree item is selected
         if getattr(self, "_OnTreeItemSelected", None) is not None:
@@ -490,11 +511,16 @@ class LibraryPanel(wx.Panel):
         # Item dragged is a block
         if item_pydata is not None and item_pydata["type"] == BLOCK:
             # Start a drag'n drop
-            data = wx.TextDataObject(str(
-                (self.Tree.GetItemText(selected_item),
-                 item_pydata["block_type"],
-                 "",
-                 item_pydata["inputs"])))
+            data = wx.TextDataObject(
+                str(
+                    (
+                        self.Tree.GetItemText(selected_item),
+                        item_pydata["block_type"],
+                        "",
+                        item_pydata["inputs"],
+                    )
+                )
+            )
             dragSource = wx.DropSource(self.Tree)
             dragSource.SetData(data)
             dragSource.DoDragDrop()

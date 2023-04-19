@@ -26,8 +26,12 @@
 from __future__ import absolute_import
 import wx
 
-from graphics.GraphicCommons import SELECTION_DIVERGENCE, \
-    SELECTION_CONVERGENCE, SIMULTANEOUS_DIVERGENCE, SIMULTANEOUS_CONVERGENCE
+from graphics.GraphicCommons import (
+    SELECTION_DIVERGENCE,
+    SELECTION_CONVERGENCE,
+    SIMULTANEOUS_DIVERGENCE,
+    SIMULTANEOUS_CONVERGENCE,
+)
 from graphics.SFC_Objects import SFC_Divergence
 from dialogs.BlockPreviewDialog import BlockPreviewDialog
 
@@ -50,22 +54,28 @@ class SFCDivergenceDialog(BlockPreviewDialog):
         @param tagname: Tagname of project POU edited
         @param poss_div_types: Types of divergence that will be available in the dialog window
         """
-        BlockPreviewDialog.__init__(self, parent, controller, tagname,
-                                    title=_('Create a new divergence or convergence'))
+        BlockPreviewDialog.__init__(
+            self,
+            parent,
+            controller,
+            tagname,
+            title=_("Create a new divergence or convergence"),
+        )
 
         # Init common sizers
         self._init_sizers(2, 0, 7, None, 2, 1)
 
         # Create label for divergence type
-        type_label = wx.StaticText(self, label=_('Type:'))
+        type_label = wx.StaticText(self, label=_("Type:"))
         self.LeftGridSizer.AddWindow(type_label, flag=wx.GROW)
 
         # Create radio buttons for selecting divergence type
         divergence_buttons = [
-            (SELECTION_DIVERGENCE, _('Selection Divergence')),
-            (SELECTION_CONVERGENCE, _('Selection Convergence')),
-            (SIMULTANEOUS_DIVERGENCE, _('Simultaneous Divergence')),
-            (SIMULTANEOUS_CONVERGENCE, _('Simultaneous Convergence'))]
+            (SELECTION_DIVERGENCE, _("Selection Divergence")),
+            (SELECTION_CONVERGENCE, _("Selection Convergence")),
+            (SIMULTANEOUS_DIVERGENCE, _("Simultaneous Divergence")),
+            (SIMULTANEOUS_CONVERGENCE, _("Simultaneous Convergence")),
+        ]
         poss_div_btns = []
         if poss_div_types is not None:
             for val in poss_div_types:
@@ -76,8 +86,9 @@ class SFCDivergenceDialog(BlockPreviewDialog):
         first = True
         focusbtn = None
         for type, label in poss_div_btns:
-            radio_button = wx.RadioButton(self, label=label,
-                                          style=(wx.RB_GROUP if first else 0))
+            radio_button = wx.RadioButton(
+                self, label=label, style=(wx.RB_GROUP if first else 0)
+            )
             radio_button.SetValue(first)
             self.Bind(wx.EVT_RADIOBUTTON, self.OnTypeChanged, radio_button)
             self.LeftGridSizer.AddWindow(radio_button, flag=wx.GROW)
@@ -87,8 +98,7 @@ class SFCDivergenceDialog(BlockPreviewDialog):
             first = False
 
         # Create label for number of divergence sequences
-        sequences_label = wx.StaticText(self,
-                                        label=_('Number of sequences:'))
+        sequences_label = wx.StaticText(self, label=_("Number of sequences:"))
         self.LeftGridSizer.AddWindow(sequences_label, flag=wx.GROW)
 
         # Create spin control for defining number of divergence sequences
@@ -102,8 +112,10 @@ class SFCDivergenceDialog(BlockPreviewDialog):
 
         # Add buttons sizer to sizers
         self.MainSizer.AddSizer(
-            self.ButtonSizer, border=20,
-            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT)
+            self.ButtonSizer,
+            border=20,
+            flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+        )
 
         self.Fit()
 
@@ -126,7 +138,7 @@ class SFCDivergenceDialog(BlockPreviewDialog):
         """
         # Go through radio buttons and return type associated to the one that
         # is selected
-        for type, control in self.TypeRadioButtons.iteritems():
+        for type, control in self.TypeRadioButtons.items():
             if control.GetValue():
                 return type
         return None
@@ -136,8 +148,7 @@ class SFCDivergenceDialog(BlockPreviewDialog):
         Set default SFC divergence parameters
         @param values: Divergence parameters values
         """
-        return {"type": self.GetDivergenceType(),
-                "number": self.Sequences.GetValue()}
+        return {"type": self.GetDivergenceType(), "number": self.Sequences.GetValue()}
 
     def OnTypeChanged(self, event):
         """
@@ -161,9 +172,9 @@ class SFCDivergenceDialog(BlockPreviewDialog):
         Override BlockPreviewDialog function
         """
         # Set graphic element displayed, creating a SFC divergence
-        self.Element = SFC_Divergence(self.Preview,
-                                      self.GetDivergenceType(),
-                                      self.Sequences.GetValue())
+        self.Element = SFC_Divergence(
+            self.Preview, self.GetDivergenceType(), self.Sequences.GetValue()
+        )
 
         # Call BlockPreviewDialog function
         BlockPreviewDialog.DrawPreview(self)

@@ -55,7 +55,6 @@ CT.GenericTreeItem.GetRightImages = GetRightImages
 
 
 class CustomTreeCtrlWithRightImage(CT.CustomTreeCtrl):
-
     def SetRightImageList(self, imageList):
         self._imageListRight = imageList
 
@@ -77,7 +76,10 @@ class CustomTreeCtrlWithRightImage(CT.CustomTreeCtrl):
             bbox_width = (r_image_w + 4) * len(rightimages) + 4
             bbox_height = r_image_h + 8
             bbox_x = w - bbox_width
-            bbox_y = item.GetY() + ((total_h > r_image_h) and [(total_h-r_image_h)//2] or [0])[0]
+            bbox_y = (
+                item.GetY()
+                + ((total_h > r_image_h) and [(total_h - r_image_h) // 2] or [0])[0]
+            )
 
             return wx.Rect(bbox_x, bbox_y, bbox_width, bbox_height)
 
@@ -90,8 +92,7 @@ class CustomTreeCtrlWithRightImage(CT.CustomTreeCtrl):
             r_image_w, r_image_h = self._imageListRight.GetSize(rightimages[0])
             images_bbx = self.GetItemRightImagesBBox(item)
 
-            rect = wx.Rect(images_bbx.x + 4, images_bbx.y + 4,
-                           r_image_w, r_image_h)
+            rect = wx.Rect(images_bbx.x + 4, images_bbx.y + 4, r_image_w, r_image_h)
             for r_image in rightimages:
                 if rect.Inside(point):
                     return r_image
@@ -110,13 +111,14 @@ class CustomTreeCtrlWithRightImage(CT.CustomTreeCtrl):
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.SetPen(wx.TRANSPARENT_PEN)
 
-            dc.DrawRectangle(images_bbx.x, images_bbx.y,
-                             images_bbx.width, images_bbx.height)
+            dc.DrawRectangle(
+                images_bbx.x, images_bbx.y, images_bbx.width, images_bbx.height
+            )
             x_pos = images_bbx.x + 4
             for r_image in rightimages:
                 self._imageListRight.Draw(
-                    r_image, dc, x_pos, images_bbx.y + 4,
-                    wx.IMAGELIST_DRAW_TRANSPARENT)
+                    r_image, dc, x_pos, images_bbx.y + 4, wx.IMAGELIST_DRAW_TRANSPARENT
+                )
                 x_pos += r_image_w + 4
 
 
@@ -124,66 +126,81 @@ _ButtonCallbacks = namedtuple("ButtonCallbacks", ["leftdown", "dclick"])
 
 
 class PouInstanceVariablesPanel(wx.Panel):
-
     def __init__(self, parent, window, controller, debug):
-        wx.Panel.__init__(self, name='PouInstanceTreePanel',
-                          parent=parent, pos=wx.Point(0, 0),
-                          size=wx.Size(0, 0), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(
+            self,
+            name="PouInstanceTreePanel",
+            parent=parent,
+            pos=wx.Point(0, 0),
+            size=wx.Size(0, 0),
+            style=wx.TAB_TRAVERSAL,
+        )
 
         self.ParentButton = wx.lib.buttons.GenBitmapButton(
-            self, bitmap=GetBitmap("top"), size=wx.Size(28, 28), style=wx.NO_BORDER)
+            self, bitmap=GetBitmap("top"), size=wx.Size(28, 28), style=wx.NO_BORDER
+        )
         self.ParentButton.SetToolTipString(_("Parent instance"))
-        self.Bind(wx.EVT_BUTTON, self.OnParentButtonClick,
-                  self.ParentButton)
+        self.Bind(wx.EVT_BUTTON, self.OnParentButtonClick, self.ParentButton)
 
-        self.InstanceChoice = wx.ComboBox(self, size=wx.Size(0, 0), style=wx.CB_READONLY)
-        self.Bind(wx.EVT_COMBOBOX, self.OnInstanceChoiceChanged,
-                  self.InstanceChoice)
+        self.InstanceChoice = wx.ComboBox(
+            self, size=wx.Size(0, 0), style=wx.CB_READONLY
+        )
+        self.Bind(wx.EVT_COMBOBOX, self.OnInstanceChoiceChanged, self.InstanceChoice)
 
         self.DebugButton = wx.lib.buttons.GenBitmapButton(
-            self, bitmap=GetBitmap("debug_instance"), size=wx.Size(28, 28), style=wx.NO_BORDER)
+            self,
+            bitmap=GetBitmap("debug_instance"),
+            size=wx.Size(28, 28),
+            style=wx.NO_BORDER,
+        )
         self.DebugButton.SetToolTipString(_("Debug instance"))
-        self.Bind(wx.EVT_BUTTON, self.OnDebugButtonClick,
-                  self.DebugButton)
+        self.Bind(wx.EVT_BUTTON, self.OnDebugButtonClick, self.DebugButton)
 
         self.VariablesList = CustomTreeCtrlWithRightImage(
             self,
             style=wx.SUNKEN_BORDER,
-            agwStyle=(CT.TR_NO_BUTTONS |
-                      CT.TR_SINGLE |
-                      CT.TR_HAS_VARIABLE_ROW_HEIGHT |
-                      CT.TR_HIDE_ROOT |
-                      CT.TR_NO_LINES |
-                      getattr(CT, "TR_ALIGN_WINDOWS_RIGHT", CT.TR_ALIGN_WINDOWS)))
+            agwStyle=(
+                CT.TR_NO_BUTTONS
+                | CT.TR_SINGLE
+                | CT.TR_HAS_VARIABLE_ROW_HEIGHT
+                | CT.TR_HIDE_ROOT
+                | CT.TR_NO_LINES
+                | getattr(CT, "TR_ALIGN_WINDOWS_RIGHT", CT.TR_ALIGN_WINDOWS)
+            ),
+        )
         self.VariablesList.SetIndent(0)
         self.VariablesList.SetSpacing(5)
         self.VariablesList.DoSelectItem = lambda *x, **y: True
-        self.VariablesList.Bind(CT.EVT_TREE_ITEM_ACTIVATED,
-                                self.OnVariablesListItemActivated)
+        self.VariablesList.Bind(
+            CT.EVT_TREE_ITEM_ACTIVATED, self.OnVariablesListItemActivated
+        )
         self.VariablesList.Bind(wx.EVT_LEFT_DOWN, self.OnVariablesListLeftDown)
         self.VariablesList.Bind(wx.EVT_KEY_DOWN, self.OnVariablesListKeyDown)
 
         self.TreeRightImageList = wx.ImageList(24, 24)
         self.EditImage = self.TreeRightImageList.Add(GetBitmap("edit"))
-        self.DebugInstanceImage = self.TreeRightImageList.Add(GetBitmap("debug_instance"))
+        self.DebugInstanceImage = self.TreeRightImageList.Add(
+            GetBitmap("debug_instance")
+        )
         self.VariablesList.SetRightImageList(self.TreeRightImageList)
 
         self.ButtonCallBacks = {
-            self.EditImage: _ButtonCallbacks(
-                self.EditButtonCallback, None),
+            self.EditImage: _ButtonCallbacks(self.EditButtonCallback, None),
             self.DebugInstanceImage: _ButtonCallbacks(
-                self.DebugButtonCallback, self.DebugButtonDClickCallback)}
+                self.DebugButtonCallback, self.DebugButtonDClickCallback
+            ),
+        }
 
         buttons_sizer = wx.FlexGridSizer(cols=3, hgap=0, rows=1, vgap=0)
-        buttons_sizer.AddWindow(self.ParentButton)
-        buttons_sizer.AddWindow(self.InstanceChoice, flag=wx.GROW)
-        buttons_sizer.AddWindow(self.DebugButton)
+        buttons_sizer.Add(self.ParentButton)
+        buttons_sizer.Add(self.InstanceChoice, flag=wx.GROW)
+        buttons_sizer.Add(self.DebugButton)
         buttons_sizer.AddGrowableCol(1)
         buttons_sizer.AddGrowableRow(0)
 
         main_sizer = wx.FlexGridSizer(cols=1, hgap=0, rows=2, vgap=0)
-        main_sizer.AddSizer(buttons_sizer, flag=wx.GROW)
-        main_sizer.AddWindow(self.VariablesList, flag=wx.GROW)
+        main_sizer.Add(buttons_sizer, flag=wx.GROW)
+        main_sizer.Add(self.VariablesList, flag=wx.GROW)
         main_sizer.AddGrowableCol(0)
         main_sizer.AddGrowableRow(1)
 
@@ -241,11 +258,19 @@ class PouInstanceVariablesPanel(wx.Panel):
         self.VariablesList.DeleteAllItems()
 
         if self.Controller is not None and self.PouTagName is not None:
-            if self.PouTagName.split('::')[0] in ['A', 'T']:
-                self.PouInfos = self.Controller.GetPouVariables('P::%s' % self.PouTagName.split('::')[1], self.Debug)
+            if self.PouTagName.split("::")[0] in ["A", "T"]:
+                self.PouInfos = self.Controller.GetPouVariables(
+                    "P::%s" % self.PouTagName.split("::")[1], self.Debug
+                )
             else:
-                self.PouInfos = self.Controller.GetPouVariables(self.PouTagName, self.Debug)
-            if None in self.Controller.GetEditedElementType(self.PouTagName, self.Debug) and self.PouInfos is not None:
+                self.PouInfos = self.Controller.GetPouVariables(
+                    self.PouTagName, self.Debug
+                )
+            if (
+                None
+                in self.Controller.GetEditedElementType(self.PouTagName, self.Debug)
+                and self.PouInfos is not None
+            ):
                 self.PouInfos.debug = False
         else:
             self.PouInfos = None
@@ -266,7 +291,9 @@ class PouInstanceVariablesPanel(wx.Panel):
 
                 item = self.VariablesList.AppendItem(root, text)
                 item.SetRightImages(right_images)
-                self.VariablesList.SetItemImage(item, self.ParentWindow.GetTreeImage(var_infos.var_class))
+                self.VariablesList.SetItemImage(
+                    item, self.ParentWindow.GetTreeImage(var_infos.var_class)
+                )
                 self.VariablesList.SetPyData(item, var_infos)
 
         self.RefreshInstanceChoice()
@@ -294,7 +321,9 @@ class PouInstanceVariablesPanel(wx.Panel):
 
     def RefreshButtons(self):
         enabled = self.InstanceChoice.GetSelection() != -1
-        self.ParentButton.Enable(enabled and self.PouInfos.var_class != ITEM_CONFIGURATION)
+        self.ParentButton.Enable(
+            enabled and self.PouInfos.var_class != ITEM_CONFIGURATION
+        )
         self.DebugButton.Enable(enabled and self.PouInfos.debug and self.Debug)
 
         root = self.VariablesList.GetRootItem()
@@ -312,16 +341,14 @@ class PouInstanceVariablesPanel(wx.Panel):
         var_class = infos.var_class
         if var_class == ITEM_RESOURCE:
             tagname = ComputeConfigurationResourceName(
-                self.InstanceChoice.GetStringSelection(),
-                infos.name)
+                self.InstanceChoice.GetStringSelection(), infos.name
+            )
         elif var_class == ITEM_TRANSITION:
             tagname = ComputePouTransitionName(
-                self.PouTagName.split("::")[1],
-                infos.name)
+                self.PouTagName.split("::")[1], infos.name
+            )
         elif var_class == ITEM_ACTION:
-            tagname = ComputePouActionName(
-                self.PouTagName.split("::")[1],
-                infos.name)
+            tagname = ComputePouActionName(self.PouTagName.split("::")[1], infos.name)
         else:
             var_class = ITEM_POU
             tagname = ComputePouName(infos.type)
@@ -332,7 +359,7 @@ class PouInstanceVariablesPanel(wx.Panel):
             var_class = infos.var_class
             instance_path = self.InstanceChoice.GetStringSelection()
             if self.PouTagName.split("::")[0] in ["A", "T"]:
-                pos = instance_path.rfind('.')
+                pos = instance_path.rfind(".")
                 instance_path = instance_path[0:pos]
             var_path = "%s.%s" % (instance_path, infos.name)
             if var_class in ITEMS_VARIABLE:
@@ -342,29 +369,32 @@ class PouInstanceVariablesPanel(wx.Panel):
                     var_class,
                     var_path,
                     ComputePouTransitionName(
-                        self.PouTagName.split("::")[1],
-                        infos.name))
+                        self.PouTagName.split("::")[1], infos.name
+                    ),
+                )
             elif var_class == ITEM_ACTION:
                 self.ParentWindow.OpenDebugViewer(
                     var_class,
                     var_path,
-                    ComputePouActionName(
-                        self.PouTagName.split("::")[1],
-                        infos.name))
+                    ComputePouActionName(self.PouTagName.split("::")[1], infos.name),
+                )
             else:
                 self.ParentWindow.OpenDebugViewer(
-                    var_class,
-                    var_path,
-                    ComputePouName(infos.type))
+                    var_class, var_path, ComputePouName(infos.type)
+                )
 
     def DebugButtonDClickCallback(self, infos):
         if self.InstanceChoice.GetSelection() != -1:
             if infos.var_class in ITEMS_VARIABLE:
                 self.ParentWindow.AddDebugVariable(
-                    "%s.%s" % (self.InstanceChoice.GetStringSelection().upper(),
-                               infos.name.upper()),
+                    "%s.%s"
+                    % (
+                        self.InstanceChoice.GetStringSelection().upper(),
+                        infos.name.upper(),
+                    ),
                     force=True,
-                    graph=True)
+                    graph=True,
+                )
 
     def ShowInstanceChoicePopup(self):
         self.InstanceChoice.SetFocusFromKbd()
@@ -395,7 +425,8 @@ class PouInstanceVariablesPanel(wx.Panel):
             self.ParentWindow.OpenDebugViewer(
                 self.PouInfos.var_class,
                 self.InstanceChoice.GetStringSelection(),
-                self.PouTagName)
+                self.PouTagName,
+            )
         event.Skip()
 
     def OnVariablesListItemActivated(self, event):
@@ -403,9 +434,9 @@ class PouInstanceVariablesPanel(wx.Panel):
         if selected_item is not None and selected_item.IsOk():
             item_infos = self.VariablesList.GetPyData(selected_item)
             if item_infos is not None:
-
                 item_button = self.VariablesList.IsOverItemRightImage(
-                    selected_item, event.GetPoint())
+                    selected_item, event.GetPoint()
+                )
                 if item_button is not None:
                     callback = self.ButtonCallBacks[item_button].dclick
                     if callback is not None:
@@ -416,16 +447,22 @@ class PouInstanceVariablesPanel(wx.Panel):
                     if item_infos.var_class == ITEM_RESOURCE:
                         if instance_path != "":
                             tagname = ComputeConfigurationResourceName(
-                                instance_path,
-                                item_infos.name)
+                                instance_path, item_infos.name
+                            )
                         else:
                             tagname = None
                     else:
-                        parent_infos = self.VariablesList.GetPyData(selected_item.GetParent())
+                        parent_infos = self.VariablesList.GetPyData(
+                            selected_item.GetParent()
+                        )
                         if item_infos.var_class == ITEM_ACTION:
-                            tagname = ComputePouActionName(parent_infos.type, item_infos.name)
+                            tagname = ComputePouActionName(
+                                parent_infos.type, item_infos.name
+                            )
                         elif item_infos.var_class == ITEM_TRANSITION:
-                            tagname = ComputePouTransitionName(parent_infos.type, item_infos.name)
+                            tagname = ComputePouTransitionName(
+                                parent_infos.type, item_infos.name
+                            )
                         else:
                             tagname = ComputePouName(item_infos.type)
                     if tagname is not None:
@@ -446,18 +483,21 @@ class PouInstanceVariablesPanel(wx.Panel):
             if item is not None:
                 item_infos = self.VariablesList.GetPyData(item)
                 if item_infos is not None:
-
                     item_button = self.VariablesList.IsOverItemRightImage(
-                        item, event.GetPosition())
+                        item, event.GetPosition()
+                    )
                     if item_button is not None:
                         callback = self.ButtonCallBacks[item_button].leftdown
                         if callback is not None:
                             callback(item_infos)
 
-                    elif (flags & CT.TREE_HITTEST_ONITEMLABEL and
-                          item_infos.var_class in ITEMS_VARIABLE):
+                    elif (
+                        flags & CT.TREE_HITTEST_ONITEMLABEL
+                        and item_infos.var_class in ITEMS_VARIABLE
+                    ):
                         self.ParentWindow.EnsureTabVisible(
-                            self.ParentWindow.DebugVariablePanel)
+                            self.ParentWindow.DebugVariablePanel
+                        )
                         item_path = "%s.%s" % (instance_path, item_infos.name)
                         data = wx.TextDataObject(str((item_path, "debug")))
                         dragSource = wx.DropSource(self.VariablesList)

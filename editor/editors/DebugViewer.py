@@ -29,7 +29,7 @@ from time import time as gettime
 
 import wx
 
-REFRESH_PERIOD = 0.1         # Minimum time between 2 refresh
+REFRESH_PERIOD = 0.1  # Minimum time between 2 refresh
 DEBUG_REFRESH_LOCK = Lock()  # Common refresh lock for all debug viewers
 
 # -------------------------------------------------------------------------------
@@ -105,7 +105,6 @@ class DebugViewer(object):
         # In the case that tick need to be subscribed and DebugViewer is
         # debugging
         if self.SubscribeTick and self.Debug:
-
             # Subscribe tick to new data producer
             if producer is not None:
                 producer.SubscribeDebugIECVariable("__tick__", self, True)
@@ -130,7 +129,7 @@ class DebugViewer(object):
         @param inhibit: Inhibit flag
         """
         # Inhibit every data consumers in list
-        for consumer, _iec_path in self.DataConsumers.iteritems():
+        for consumer, _iec_path in self.DataConsumers.items():
             consumer.Inhibit(inhibit)
 
         # Save inhibit flag
@@ -150,9 +149,9 @@ class DebugViewer(object):
 
         # Subscribe data consumer to DataProducer
         result = self.DataProducer.SubscribeDebugIECVariable(
-            iec_path, consumer, buffer_list)
+            iec_path, consumer, buffer_list
+        )
         if result is not None and consumer != self:
-
             # Store data consumer if successfully subscribed and inform
             # consumer of variable data type
             self.DataConsumers[consumer] = iec_path
@@ -186,13 +185,12 @@ class DebugViewer(object):
         Called to Unsubscribe all data consumers.
         """
         if self.DataProducer is not None:
-
             # Unscribe tick if needed
             if self.SubscribeTick and tick and self.Debug:
                 self.DataProducer.UnsubscribeDebugIECVariable("__tick__", self)
 
             # Unsubscribe all data consumers in list
-            for consumer, iec_path in self.DataConsumers.iteritems():
+            for consumer, iec_path in self.DataConsumers.items():
                 self.DataProducer.UnsubscribeDebugIECVariable(iec_path, consumer)
 
         self.DataConsumers = {}
@@ -204,10 +202,8 @@ class DebugViewer(object):
         @return: variable data type (None if not found)
         """
         if self.DataProducer is not None:
-
             # Search for variable informations in project compilation files
-            data_type = self.DataProducer.GetDebugIECVariableType(
-                iec_path.upper())
+            data_type = self.DataProducer.GetDebugIECVariableType(iec_path.upper())
             if data_type is not None:
                 return data_type
 
@@ -262,11 +258,12 @@ class DebugViewer(object):
         # Only try to refresh DebugViewer if it is visible on screen and not
         # already refreshing
         if self.IsShown() and not self.Inhibited:
-
             # Try to get acquire common refresh lock if minimum period between
             # two refresh has expired
-            if gettime() - self.LastRefreshTime > REFRESH_PERIOD and \
-               DEBUG_REFRESH_LOCK.acquire(False):
+            if (
+                gettime() - self.LastRefreshTime > REFRESH_PERIOD
+                and DEBUG_REFRESH_LOCK.acquire(False)
+            ):
                 self.StartRefreshing()
 
             # If common lock wasn't acquired for any reason, restart last
@@ -286,7 +283,6 @@ class DebugViewer(object):
         """
         # Cancel if DebugViewer is not visible on screen
         if self and self.IsShown():
-
             # Try to acquire common refresh lock
             if DEBUG_REFRESH_LOCK.acquire(False):
                 self.StartRefreshing()
@@ -320,8 +316,7 @@ class DebugViewer(object):
         All parameters are passed to refresh function
         """
         self.TimerAccessLock.acquire()
-        self.LastRefreshTimer = Timer(
-            REFRESH_PERIOD, self.ShouldRefresh)
+        self.LastRefreshTimer = Timer(REFRESH_PERIOD, self.ShouldRefresh)
         self.LastRefreshTimer.start()
         self.TimerAccessLock.release()
 

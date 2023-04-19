@@ -49,19 +49,24 @@ def GenerateName(infos):
 #                            Search Result Panel
 # -------------------------------------------------------------------------------
 
-class SearchResultPanel(wx.Panel):
 
+class SearchResultPanel(wx.Panel):
     def _init_coll_MainSizer_Items(self, parent):
-        parent.AddSizer(self.HeaderSizer, 0, border=0, flag=wx.GROW)
-        parent.AddWindow(self.SearchResultsTree, 1, border=0, flag=wx.GROW)
+        parent.Add(self.HeaderSizer, 0, border=0, flag=wx.GROW)
+        parent.Add(self.SearchResultsTree, 1, border=0, flag=wx.GROW)
 
     def _init_coll_MainSizer_Growables(self, parent):
         parent.AddGrowableCol(0)
         parent.AddGrowableRow(1)
 
     def _init_coll_HeaderSizer_Items(self, parent):
-        parent.AddWindow(self.HeaderLabel, 1, border=5, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        parent.AddWindow(self.ResetButton, 0, border=0, flag=0)
+        parent.Add(
+            self.HeaderLabel,
+            1,
+            border=5,
+            flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+        )
+        parent.Add(self.ResetButton, 0, border=0, flag=0)
 
     def _init_coll_HeaderSizer_Growables(self, parent):
         parent.AddGrowableCol(0)
@@ -77,29 +82,47 @@ class SearchResultPanel(wx.Panel):
         self.SetSizer(self.MainSizer)
 
     def _init_ctrls(self, prnt):
-        self.HeaderLabel = wx.StaticText(name='HeaderLabel', parent=self,
-                                         pos=wx.Point(0, 0), size=wx.Size(0, 17), style=0)
+        self.HeaderLabel = wx.StaticText(
+            name="HeaderLabel",
+            parent=self,
+            pos=wx.Point(0, 0),
+            size=wx.Size(0, 17),
+            style=0,
+        )
 
-        search_results_tree_style = CT.TR_HAS_BUTTONS | CT.TR_NO_LINES | CT.TR_HAS_VARIABLE_ROW_HEIGHT
-        self.SearchResultsTree = CT.CustomTreeCtrl(name="SearchResultsTree", parent=self,
-                                                   pos=wx.Point(0, 0), style=search_results_tree_style)
+        search_results_tree_style = (
+            CT.TR_HAS_BUTTONS | CT.TR_NO_LINES | CT.TR_HAS_VARIABLE_ROW_HEIGHT
+        )
+        self.SearchResultsTree = CT.CustomTreeCtrl(
+            name="SearchResultsTree",
+            parent=self,
+            pos=wx.Point(0, 0),
+            style=search_results_tree_style,
+        )
         self.SearchResultsTree.SetAGWWindowStyleFlag(search_results_tree_style)
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnSearchResultsTreeItemActivated,
-                  self.SearchResultsTree)
+        self.Bind(
+            wx.EVT_TREE_ITEM_ACTIVATED,
+            self.OnSearchResultsTreeItemActivated,
+            self.SearchResultsTree,
+        )
 
         self.ResetButton = wx.lib.buttons.GenBitmapButton(
-            self, bitmap=GetBitmap("reset"),
-            size=wx.Size(28, 28), style=wx.NO_BORDER)
+            self, bitmap=GetBitmap("reset"), size=wx.Size(28, 28), style=wx.NO_BORDER
+        )
         self.ResetButton.SetToolTipString(_("Reset search result"))
         self.Bind(wx.EVT_BUTTON, self.OnResetButton, self.ResetButton)
 
         self._init_sizers()
 
     def __init__(self, parent, window):
-        wx.Panel.__init__(self,
-                          name='SearchResultPanel', parent=parent,
-                          pos=wx.Point(0, 0),
-                          size=wx.Size(0, 0), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(
+            self,
+            name="SearchResultPanel",
+            parent=parent,
+            pos=wx.Point(0, 0),
+            size=wx.Size(0, 0),
+            style=wx.TAB_TRAVERSAL,
+        )
 
         self.ParentWindow = window
 
@@ -111,26 +134,41 @@ class SearchResultPanel(wx.Panel):
 
         # Icons for other items
         for imgname, itemtype in [
-                # editables
-                ("PROJECT",        ITEM_PROJECT),
-                ("TRANSITION",     ITEM_TRANSITION),
-                ("ACTION",         ITEM_ACTION),
-                ("CONFIGURATION",  ITEM_CONFIGURATION),
-                ("RESOURCE",       ITEM_RESOURCE),
-                ("DATATYPE",       ITEM_DATATYPE),
-                ("ACTION",         "action_block"),
-                ("IL",             "IL"),
-                ("ST",             "ST"),
-                ("FILE",           ITEM_CONFNODE)]:
+            # editables
+            ("PROJECT", ITEM_PROJECT),
+            ("TRANSITION", ITEM_TRANSITION),
+            ("ACTION", ITEM_ACTION),
+            ("CONFIGURATION", ITEM_CONFIGURATION),
+            ("RESOURCE", ITEM_RESOURCE),
+            ("DATATYPE", ITEM_DATATYPE),
+            ("ACTION", "action_block"),
+            ("IL", "IL"),
+            ("ST", "ST"),
+            ("FILE", ITEM_CONFNODE),
+        ]:
             self.TreeImageDict[itemtype] = self.TreeImageList.Add(GetBitmap(imgname))
 
-        for itemtype in ["function", "functionBlock", "program",
-                         "comment", "block", "io_variable",
-                         "connector", "contact", "coil",
-                         "step", "transition", "jump",
-                         "var_local", "var_input",
-                         "var_inout", "var_output"]:
-            self.TreeImageDict[itemtype] = self.TreeImageList.Add(GetBitmap(itemtype.upper()))
+        for itemtype in [
+            "function",
+            "functionBlock",
+            "program",
+            "comment",
+            "block",
+            "io_variable",
+            "connector",
+            "contact",
+            "coil",
+            "step",
+            "transition",
+            "jump",
+            "var_local",
+            "var_input",
+            "var_inout",
+            "var_output",
+        ]:
+            self.TreeImageDict[itemtype] = self.TreeImageList.Add(
+                GetBitmap(itemtype.upper())
+            )
 
         # Assign icon list to TreeCtrl
         self.SearchResultsTree.SetImageList(self.TreeImageList)
@@ -168,13 +206,16 @@ class SearchResultPanel(wx.Panel):
         else:
             matches_number = 0
             search_results_tree_infos = {
-                "name": _("Project '%s':") % self.ParentWindow.Controler.GetProjectName(),
+                "name": _("Project '%s':")
+                % self.ParentWindow.Controler.GetProjectName(),
                 "type": ITEM_PROJECT,
                 "data": None,
                 "text": None,
                 "matches": None,
             }
-            search_results_tree_children = search_results_tree_infos.setdefault("children", [])
+            search_results_tree_children = search_results_tree_infos.setdefault(
+                "children", []
+            )
             for tagname in self.ElementsOrder:
                 results = self.SearchResults.get(tagname, [])
                 matches_number += len(results)
@@ -185,19 +226,24 @@ class SearchResultPanel(wx.Panel):
                 if element_type == ITEM_POU:
                     element_type = self.ParentWindow.Controler.GetPouType(words[1])
 
-                element_infos = {"name": words[-1],
-                                 "type": element_type,
-                                 "data": tagname,
-                                 "text": None,
-                                 "matches": len(results)}
+                element_infos = {
+                    "name": words[-1],
+                    "type": element_type,
+                    "data": tagname,
+                    "text": None,
+                    "matches": len(results),
+                }
 
                 children = element_infos.setdefault("children", [])
                 for infos, start, end, text in results:
                     if len(words) == 1:  # CTN match
-                        child_name = {"body": str(start[0])+":",
-                                      "var_inout": _("Variable:")}[infos[1]]
-                        child_type = {"body": ITEM_CONFNODE,
-                                      "var_inout": "var_inout"}[infos[1]]
+                        child_name = {
+                            "body": str(start[0]) + ":",
+                            "var_inout": _("Variable:"),
+                        }[infos[1]]
+                        child_type = {"body": ITEM_CONFNODE, "var_inout": "var_inout"}[
+                            infos[1]
+                        ]
                     elif infos[1] == "name" or element_type == ITEM_DATATYPE:
                         child_name = GenerateName(infos[1:])
                         child_type = element_type
@@ -211,11 +257,21 @@ class SearchResultPanel(wx.Panel):
                         elif child_type == "body":
                             child_name = "body"
                             if element_type == ITEM_TRANSITION:
-                                child_type = self.ParentWindow.Controler.GetTransitionBodyType(words[1], words[2])
+                                child_type = (
+                                    self.ParentWindow.Controler.GetTransitionBodyType(
+                                        words[1], words[2]
+                                    )
+                                )
                             elif element_type == ITEM_ACTION:
-                                child_type = self.ParentWindow.Controler.GetActionBodyType(words[1], words[2])
+                                child_type = (
+                                    self.ParentWindow.Controler.GetActionBodyType(
+                                        words[1], words[2]
+                                    )
+                                )
                             else:
-                                child_type = self.ParentWindow.Controler.GetPouBodyType(words[1])
+                                child_type = self.ParentWindow.Controler.GetPouBodyType(
+                                    words[1]
+                                )
                         else:
                             child_name = GenerateName(infos[3:])
                     child_infos = {
@@ -245,13 +301,19 @@ class SearchResultPanel(wx.Panel):
             else:
                 header_format = _("'{a1}' - {a2} matches in project")
 
-            self.HeaderLabel.SetLabel(header_format.format(a1=self.Criteria["find_pattern"], a2=matches_number))
+            self.HeaderLabel.SetLabel(
+                header_format.format(
+                    a1=self.Criteria["find_pattern"], a2=matches_number
+                )
+            )
             self.ResetButton.Enable(True)
 
             if matches_number > 0:
                 root = self.SearchResultsTree.GetRootItem()
                 if root is None:
-                    root = self.SearchResultsTree.AddRoot(search_results_tree_infos["name"])
+                    root = self.SearchResultsTree.AddRoot(
+                        search_results_tree_infos["name"]
+                    )
                 self.GenerateSearchResultsTreeBranch(root, search_results_tree_infos)
                 self.SearchResultsTree.Expand(root)
 
@@ -259,12 +321,14 @@ class SearchResultPanel(wx.Panel):
         def OnTextCtrlClick(event):
             self.SearchResultsTree.SelectItem(item)
             event.Skip()
+
         return OnTextCtrlClick
 
     def GetTextCtrlDClickFunction(self, item):
         def OnTextCtrlDClick(event):
             self.ShowSearchResults(item)
             event.Skip()
+
         return OnTextCtrlDClick
 
     def GenerateSearchResultsTreeBranch(self, root, infos):
@@ -279,9 +343,16 @@ class SearchResultPanel(wx.Panel):
         self.SearchResultsTree.SetItemTextColour(root, wx.BLACK)
         if infos["type"] is not None:
             if infos["type"] == ITEM_POU:
-                self.SearchResultsTree.SetItemImage(root, self.TreeImageDict[self.ParentWindow.Controler.GetPouType(infos["name"])])
+                self.SearchResultsTree.SetItemImage(
+                    root,
+                    self.TreeImageDict[
+                        self.ParentWindow.Controler.GetPouType(infos["name"])
+                    ],
+                )
             else:
-                self.SearchResultsTree.SetItemImage(root, self.TreeImageDict[infos["type"]])
+                self.SearchResultsTree.SetItemImage(
+                    root, self.TreeImageDict[infos["type"]]
+                )
 
         text = None
         if infos["text"] is not None:
@@ -289,7 +360,11 @@ class SearchResultPanel(wx.Panel):
             start, end = infos["data"][1:3]
             text_lines = infos["text"].splitlines()
             start_idx = start[1]
-            end_idx = reduce(lambda x, y: x + y, map(lambda x: len(x) + 1, text_lines[:end[0] - start[0]]), end[1] + 1)
+            end_idx = reduce(
+                lambda x, y: x + y,
+                map(lambda x: len(x) + 1, text_lines[: end[0] - start[0]]),
+                end[1] + 1,
+            )
             style = wx.TextAttr(wx.BLACK, wx.Colour(206, 204, 247))
         elif infos["type"] is not None and infos["matches"] > 1:
             text = _("(%d matches)") % infos["matches"]
@@ -298,10 +373,15 @@ class SearchResultPanel(wx.Panel):
 
         if text is not None:
             text_ctrl_style = wx.BORDER_NONE | wx.TE_READONLY | wx.TE_RICH2
-            if wx.Platform != '__WXMSW__' or len(text.splitlines()) > 1:
+            if wx.Platform != "__WXMSW__" or len(text.splitlines()) > 1:
                 text_ctrl_style |= wx.TE_MULTILINE | wx.TE_NO_VSCROLL
-            text_ctrl = wx.TextCtrl(id=-1, parent=self.SearchResultsTree, pos=wx.Point(0, 0),
-                                    value=text, style=text_ctrl_style)
+            text_ctrl = wx.TextCtrl(
+                id=-1,
+                parent=self.SearchResultsTree,
+                pos=wx.Point(0, 0),
+                value=text,
+                style=text_ctrl_style,
+            )
             width, height = text_ctrl.GetTextExtent(text)
             text_ctrl.SetClientSize(wx.Size(width + 1, height))
             text_ctrl.SetBackgroundColour(self.SearchResultsTree.GetBackgroundColour())
@@ -315,7 +395,9 @@ class SearchResultPanel(wx.Panel):
         for child in infos["children"]:
             if item is None:
                 item = self.SearchResultsTree.AppendItem(root, "")
-                item, root_cookie = self.SearchResultsTree.GetNextChild(root, root_cookie)
+                item, root_cookie = self.SearchResultsTree.GetNextChild(
+                    root, root_cookie
+                )
             self.GenerateSearchResultsTreeBranch(item, child)
             item, root_cookie = self.SearchResultsTree.GetNextChild(root, root_cookie)
 

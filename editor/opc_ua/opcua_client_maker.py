@@ -12,31 +12,32 @@ import wx.dataview as dv
 
 
 UA_IEC_types = dict(
-#   pyopcua | IEC61131|  C  type  | sz |  open62541  enum  | open62541
-    Boolean = ("BOOL" , "uint8_t" , "X", "UA_TYPES_BOOLEAN", "UA_Boolean"),
-    SByte   = ("SINT" , "int8_t"  , "B", "UA_TYPES_SBYTE"  , "UA_SByte"  ),
-    Byte    = ("USINT", "uint8_t" , "B", "UA_TYPES_BYTE"   , "UA_Byte"   ),
-    Int16   = ("INT"  , "int16_t" , "W", "UA_TYPES_INT16"  , "UA_Int16"  ),
-    UInt16  = ("UINT" , "uint16_t", "W", "UA_TYPES_UINT16" , "UA_UInt16" ),
-    Int32   = ("DINT" , "uint32_t", "D", "UA_TYPES_INT32"  , "UA_Int32"  ),
-    UInt32  = ("UDINT", "int32_t" , "D", "UA_TYPES_UINT32" , "UA_UInt32" ),
-    Int64   = ("LINT" , "int64_t" , "L", "UA_TYPES_INT64"  , "UA_Int64"  ),
-    UInt64  = ("ULINT", "uint64_t", "L", "UA_TYPES_UINT64" , "UA_UInt64" ),
-    Float   = ("REAL" , "float"   , "D", "UA_TYPES_FLOAT"  , "UA_Float"  ),
-    Double  = ("LREAL", "double"  , "L", "UA_TYPES_DOUBLE" , "UA_Double" ),
+    #   pyopcua | IEC61131|  C  type  | sz |  open62541  enum  | open62541
+    Boolean=("BOOL", "uint8_t", "X", "UA_TYPES_BOOLEAN", "UA_Boolean"),
+    SByte=("SINT", "int8_t", "B", "UA_TYPES_SBYTE", "UA_SByte"),
+    Byte=("USINT", "uint8_t", "B", "UA_TYPES_BYTE", "UA_Byte"),
+    Int16=("INT", "int16_t", "W", "UA_TYPES_INT16", "UA_Int16"),
+    UInt16=("UINT", "uint16_t", "W", "UA_TYPES_UINT16", "UA_UInt16"),
+    Int32=("DINT", "uint32_t", "D", "UA_TYPES_INT32", "UA_Int32"),
+    UInt32=("UDINT", "int32_t", "D", "UA_TYPES_UINT32", "UA_UInt32"),
+    Int64=("LINT", "int64_t", "L", "UA_TYPES_INT64", "UA_Int64"),
+    UInt64=("ULINT", "uint64_t", "L", "UA_TYPES_UINT64", "UA_UInt64"),
+    Float=("REAL", "float", "D", "UA_TYPES_FLOAT", "UA_Float"),
+    Double=("LREAL", "double", "L", "UA_TYPES_DOUBLE", "UA_Double"),
 )
 
 UA_NODE_ID_types = {
-    "int"   : ("UA_NODEID_NUMERIC", "{}"  ),
-    "str"   : ("UA_NODEID_STRING" , '"{}"'),
-    "UUID"  : ("UA_NODEID_UUID"   , '"{}"'),
+    "int": ("UA_NODEID_NUMERIC", "{}"),
+    "str": ("UA_NODEID_STRING", '"{}"'),
+    "UUID": ("UA_NODEID_UUID", '"{}"'),
 }
 
-lstcolnames  = [  "Name", "NSIdx", "IdType", "Id", "Type", "IEC"]
-lstcolwidths = [     100,      50,      100,  100,    100,    50]
-lstcoltypess = [     str,     int,      str,  str,    str,   int]
+lstcolnames = ["Name", "NSIdx", "IdType", "Id", "Type", "IEC"]
+lstcolwidths = [100, 50, 100, 100, 100, 50]
+lstcoltypess = [str, int, str, str, str, int]
 
 directions = ["input", "output"]
+
 
 class OPCUASubListModel(dv.PyDataViewIndexListModel):
     def __init__(self, data, log):
@@ -56,8 +57,12 @@ class OPCUASubListModel(dv.PyDataViewIndexListModel):
 
         try:
             v = expectedtype(value)
-        except ValueError: 
-            self.log("String {} is invalid for type {}\n".format(value,expectedtype.__name__))
+        except ValueError:
+            self.log(
+                "String {} is invalid for type {}\n".format(
+                    value, expectedtype.__name__
+                )
+            )
             return False
 
         if col == lstcolnames.index("IdType") and v not in UA_NODE_ID_types:
@@ -73,18 +78,17 @@ class OPCUASubListModel(dv.PyDataViewIndexListModel):
 
     # Report the number of rows in the model
     def GetCount(self):
-        #self.log.write('GetCount')
+        # self.log.write('GetCount')
         return len(self.data)
 
     # Called to check if non-standard attributes should be used in the
     # cell at (row, col)
     def GetAttrByRow(self, row, col, attr):
         if col == 5:
-            attr.SetColour('blue')
+            attr.SetColour("blue")
             attr.SetBold(True)
             return True
         return False
-
 
     def DeleteRows(self, rows):
         # make a copy since we'll be sorting(mutating) the list
@@ -97,19 +101,19 @@ class OPCUASubListModel(dv.PyDataViewIndexListModel):
             # notify the view(s) using this model that it has been removed
             self.RowDeleted(row)
 
-
     def AddRow(self, value):
         if self.data.append(value):
             # notify views
             self.RowAppended()
-    
+
     def ResetData(self):
         self.Reset(len(self.data))
 
+
 OPCUAClientDndMagicWord = "text/beremiz-opcuaclient"
 
-class NodeDropTarget(wx.DropTarget):
 
+class NodeDropTarget(wx.DropTarget):
     def __init__(self, parent):
         data = wx.CustomDataObject(OPCUAClientDndMagicWord)
         wx.DropTarget.__init__(self, data)
@@ -119,55 +123,56 @@ class NodeDropTarget(wx.DropTarget):
         self.ParentWindow.OnNodeDnD()
         return True
 
+
 class OPCUASubListPanel(wx.Panel):
     def __init__(self, parent, log, model, direction):
         self.log = log
         wx.Panel.__init__(self, parent, -1)
 
-        self.dvc = dv.DataViewCtrl(self,
-                                   style=wx.BORDER_THEME
-                                   | dv.DV_ROW_LINES
-                                   | dv.DV_HORIZ_RULES
-                                   | dv.DV_VERT_RULES
-                                   | dv.DV_MULTIPLE
-                                   )
+        self.dvc = dv.DataViewCtrl(
+            self,
+            style=wx.BORDER_THEME
+            | dv.DV_ROW_LINES
+            | dv.DV_HORIZ_RULES
+            | dv.DV_VERT_RULES
+            | dv.DV_MULTIPLE,
+        )
 
         self.model = model
 
         self.dvc.AssociateModel(self.model)
 
-        for idx,(colname,width) in enumerate(zip(lstcolnames,lstcolwidths)):
-            self.dvc.AppendTextColumn(colname,  idx, width=width, mode=dv.DATAVIEW_CELL_EDITABLE)
+        for idx, (colname, width) in enumerate(zip(lstcolnames, lstcolwidths)):
+            self.dvc.AppendTextColumn(
+                colname, idx, width=width, mode=dv.DATAVIEW_CELL_EDITABLE
+            )
 
         DropTarget = NodeDropTarget(self)
         self.dvc.SetDropTarget(DropTarget)
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.direction =  direction
+        self.direction = direction
         titlestr = direction + " variables"
 
-        title = wx.StaticText(self, label = titlestr)
+        title = wx.StaticText(self, label=titlestr)
 
         delbt = wx.Button(self, label="Delete Row(s)")
         self.Bind(wx.EVT_BUTTON, self.OnDeleteRows, delbt)
 
         topsizer = wx.BoxSizer(wx.HORIZONTAL)
-        topsizer.Add(title, 1, wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT, 5)
-        topsizer.Add(delbt, 0, wx.LEFT|wx.RIGHT, 5)
-        self.Sizer.Add(topsizer, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        topsizer.Add(title, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
+        topsizer.Add(delbt, 0, wx.LEFT | wx.RIGHT, 5)
+        self.Sizer.Add(topsizer, 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
         self.Sizer.Add(self.dvc, 1, wx.EXPAND)
-
-
 
     def OnDeleteRows(self, evt):
         items = self.dvc.GetSelections()
         rows = [self.model.GetRow(item) for item in items]
         self.model.DeleteRows(rows)
 
-
     def OnNodeDnD(self):
-        # Have to find OPC-UA client extension panel from here 
+        # Have to find OPC-UA client extension panel from here
         # in order to avoid keeping reference (otherwise __del__ isn't called)
         #             splitter.        panel.      splitter
         ClientPanel = self.GetParent().GetParent().GetParent()
@@ -185,48 +190,46 @@ class OPCUASubListPanel(wx.Panel):
                 continue
 
             access = node.get_access_level()
-            if {"input":ua.AccessLevel.CurrentRead,
-                "output":ua.AccessLevel.CurrentWrite}[self.direction] not in access:
-                self.log("Node {} ignored because of insuficient access rights".format(dname))
+            if {
+                "input": ua.AccessLevel.CurrentRead,
+                "output": ua.AccessLevel.CurrentWrite,
+            }[self.direction] not in access:
+                self.log(
+                    "Node {} ignored because of insuficient access rights".format(dname)
+                )
                 continue
 
             nsid = node.nodeid.NamespaceIndex
-            nid =  node.nodeid.Identifier
-            nid_type =  type(nid).__name__
+            nid = node.nodeid.Identifier
+            nid_type = type(nid).__name__
             iecid = nid
 
-            value = [dname,
-                     nsid,
-                     nid_type,
-                     nid,
-                     tname,
-                     iecid]
+            value = [dname, nsid, nid_type, nid, tname, iecid]
             self.model.AddRow(value)
 
 
-
 il = None
-fldridx = None    
+fldridx = None
 fldropenidx = None
 fileidx = None
 smileidx = None
-isz = (16,16)
+isz = (16, 16)
 
-treecolnames  = [  "Name", "Class", "NSIdx", "Id"]
-treecolwidths = [     250,     100,      50,  200]
+treecolnames = ["Name", "Class", "NSIdx", "Id"]
+treecolwidths = [250, 100, 50, 200]
 
 
 def prepare_image_list():
-    global il, fldridx, fldropenidx, fileidx, smileidx    
+    global il, fldridx, fldropenidx, fileidx, smileidx
 
-    if il is not None: 
+    if il is not None:
         return
 
     il = wx.ImageList(isz[0], isz[1])
-    fldridx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-    fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
-    fileidx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
-    smileidx    = il.Add(wx.ArtProvider.GetBitmap(wx.ART_ADD_BOOKMARK, wx.ART_OTHER, isz))
+    fldridx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, isz))
+    fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, isz))
+    fileidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+    smileidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_ADD_BOOKMARK, wx.ART_OTHER, isz))
 
 
 class OPCUAClientPanel(wx.SplitterWindow):
@@ -246,16 +249,25 @@ class OPCUAClientPanel(wx.SplitterWindow):
 
         self.connect_button = wx.ToggleButton(self.inout_panel, -1, "Browse Server")
 
-        self.selected_splitter = wx.SplitterWindow(self.inout_panel, style=wx.SUNKEN_BORDER | wx.SP_3D)
+        self.selected_splitter = wx.SplitterWindow(
+            self.inout_panel, style=wx.SUNKEN_BORDER | wx.SP_3D
+        )
 
         self.selected_datas = modeldata
-        self.selected_models = { direction:OPCUASubListModel(self.selected_datas[direction], log) for direction in directions }
-        self.selected_lists = { direction:OPCUASubListPanel(
-                self.selected_splitter, log, 
-                self.selected_models[direction], direction) 
-            for direction in directions }
+        self.selected_models = {
+            direction: OPCUASubListModel(self.selected_datas[direction], log)
+            for direction in directions
+        }
+        self.selected_lists = {
+            direction: OPCUASubListPanel(
+                self.selected_splitter, log, self.selected_models[direction], direction
+            )
+            for direction in directions
+        }
 
-        self.selected_splitter.SplitHorizontally(*[self.selected_lists[direction] for direction in directions]+[300])
+        self.selected_splitter.SplitHorizontally(
+            *[self.selected_lists[direction] for direction in directions] + [300]
+        )
 
         self.inout_sizer.Add(self.connect_button, flag=wx.GROW)
         self.inout_sizer.Add(self.selected_splitter, flag=wx.GROW)
@@ -277,22 +289,24 @@ class OPCUAClientPanel(wx.SplitterWindow):
 
     def OnConnectButton(self, event):
         if self.connect_button.GetValue():
-            
             self.tree_panel = wx.Panel(self)
             self.tree_sizer = wx.FlexGridSizer(cols=1, hgap=0, rows=2, vgap=0)
             self.tree_sizer.AddGrowableCol(0)
             self.tree_sizer.AddGrowableRow(0)
 
-            self.tree = TreeListCtrl(self.tree_panel, -1, style=0, agwStyle=
-                                            wx.TR_DEFAULT_STYLE
-                                            | wx.TR_MULTIPLE
-                                            | wx.TR_FULL_ROW_HIGHLIGHT
-                                       )
+            self.tree = TreeListCtrl(
+                self.tree_panel,
+                -1,
+                style=0,
+                agwStyle=wx.TR_DEFAULT_STYLE
+                | wx.TR_MULTIPLE
+                | wx.TR_FULL_ROW_HIGHLIGHT,
+            )
 
             prepare_image_list()
             self.tree.SetImageList(il)
 
-            for idx,(colname, width) in enumerate(zip(treecolnames, treecolwidths)):
+            for idx, (colname, width) in enumerate(zip(treecolnames, treecolwidths)):
                 self.tree.AddColumn(colname)
                 self.tree.SetColumnWidth(idx, width)
 
@@ -315,7 +329,10 @@ class OPCUAClientPanel(wx.SplitterWindow):
 
             self.tree.Expand(rootitem)
 
-            hint = wx.StaticText(self, label = "Drag'n'drop desired variables from tree to Input or Output list")
+            hint = wx.StaticText(
+                self,
+                label="Drag'n'drop desired variables from tree to Input or Output list",
+            )
 
             self.tree_sizer.Add(self.tree, flag=wx.GROW)
             self.tree_sizer.Add(hint, flag=wx.GROW)
@@ -330,17 +347,16 @@ class OPCUAClientPanel(wx.SplitterWindow):
             self.Unsplit(self.tree_panel)
             self.tree_panel.Destroy()
 
-
     def CreateSubItems(self, item):
         node, browsed = self.tree.GetPyData(item)
         if not browsed:
             for subnode in node.get_children():
                 self.AddNodeItem(lambda n: self.tree.AppendItem(item, n), subnode)
-            self.tree.SetPyData(item,(node, True))
+            self.tree.SetPyData(item, (node, True))
 
     def AddNodeItem(self, item_creation_func, node):
         nsid = node.nodeid.NamespaceIndex
-        nid =  node.nodeid.Identifier
+        nid = node.nodeid.Identifier
         dname = node.get_display_name().Text
         cname = node.get_node_class().name
 
@@ -359,16 +375,18 @@ class OPCUAClientPanel(wx.SplitterWindow):
                 ext = "WO"  # not sure this one exist
             else:
                 ext = "no access"  # not sure this one exist
-            cname = "Var "+node.get_data_type_as_variant_type().name+" (" + ext + ")"
+            cname = (
+                "Var " + node.get_data_type_as_variant_type().name + " (" + ext + ")"
+            )
         else:
             normalidx = fldridx
 
-        self.tree.SetPyData(item,(node, False))
+        self.tree.SetPyData(item, (node, False))
         self.tree.SetItemText(item, cname, 1)
         self.tree.SetItemText(item, str(nsid), 2)
-        self.tree.SetItemText(item, type(nid).__name__+": "+str(nid), 3)
-        self.tree.SetItemImage(item, normalidx, which = wx.TreeItemIcon_Normal)
-        self.tree.SetItemImage(item, fldropenidx, which = wx.TreeItemIcon_Expanded)
+        self.tree.SetItemText(item, type(nid).__name__ + ": " + str(nid), 3)
+        self.tree.SetItemImage(item, normalidx, which=wx.TreeItemIcon_Normal)
+        self.tree.SetItemImage(item, fldropenidx, which=wx.TreeItemIcon_Expanded)
 
         return item
 
@@ -392,13 +410,10 @@ class OPCUAClientPanel(wx.SplitterWindow):
                 self.ordered_nodes.append(node)
 
         # filter out vanished items
-        self.ordered_nodes = [
-            node 
-            for node in self.ordered_nodes 
-            if node in nodes]
+        self.ordered_nodes = [node for node in self.ordered_nodes if node in nodes]
 
     def GetSelectedNodes(self):
-        return self.ordered_nodes 
+        return self.ordered_nodes
 
     def OnTreeBeginDrag(self, event):
         """
@@ -415,11 +430,11 @@ class OPCUAClientPanel(wx.SplitterWindow):
 
     def Reset(self):
         for direction in directions:
-            self.selected_models[direction].ResetData() 
-        
+            self.selected_models[direction].ResetData()
+
 
 class OPCUAClientList(list):
-    def __init__(self, log = lambda m:None):
+    def __init__(self, log=lambda m: None):
         super(OPCUAClientList, self).__init__(self)
         self.log = log
 
@@ -433,48 +448,52 @@ class OPCUAClientList(list):
                 iecnums = set(zip(*self)[lstcolnames.index("IEC")])
                 greatest = max(iecnums)
                 holes = set(range(greatest)) - iecnums
-                v["IEC"] = min(holes) if holes else greatest+1
+                v["IEC"] = min(holes) if holes else greatest + 1
 
         if v["IdType"] not in UA_NODE_ID_types:
             self.log("Unknown IdType\n".format(value))
             return False
 
         try:
-            for t,n in zip(lstcoltypess, lstcolnames):
-                v[n] = t(v[n]) 
-        except ValueError: 
-            self.log("Variable {} (Id={}) has invalid type\n".format(v["Name"],v["Id"]))
+            for t, n in zip(lstcoltypess, lstcolnames):
+                v[n] = t(v[n])
+        except ValueError:
+            self.log(
+                "Variable {} (Id={}) has invalid type\n".format(v["Name"], v["Id"])
+            )
             return False
 
-        if len(self)>0 and v["Id"] in zip(*self)[lstcolnames.index("Id")]:
-            self.log("Variable {} (Id={}) already in list\n".format(v["Name"],v["Id"]))
+        if len(self) > 0 and v["Id"] in zip(*self)[lstcolnames.index("Id")]:
+            self.log("Variable {} (Id={}) already in list\n".format(v["Name"], v["Id"]))
             return False
 
         list.append(self, [v[n] for n in lstcolnames])
 
         return True
 
+
 class OPCUAClientModel(dict):
-    def __init__(self, log = lambda m:None):
+    def __init__(self, log=lambda m: None):
         super(OPCUAClientModel, self).__init__()
         for direction in directions:
             self[direction] = OPCUAClientList(log)
 
-    def LoadCSV(self,path):
-        with open(path, 'rb') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            buf = {direction:[] for direction, _model in self.iteritems()}
-            for direction, model in self.iteritems():
+    def LoadCSV(self, path):
+        with open(path, "rb") as csvfile:
+            reader = csv.reader(csvfile, delimiter=",", quotechar='"')
+            buf = {direction: [] for direction, _model in self.items()}
+            for direction, model in self.items():
                 self[direction][:] = []
             for row in reader:
                 direction = row[0]
                 self[direction].append(row[1:])
 
-    def SaveCSV(self,path):
-        with open(path, 'wb') as csvfile:
-            for direction, data in self.iteritems():
-                writer = csv.writer(csvfile, delimiter=',',
-                                quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    def SaveCSV(self, path):
+        with open(path, "wb") as csvfile:
+            for direction, data in self.items():
+                writer = csv.writer(
+                    csvfile, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+                )
                 for row in data:
                     writer.writerow([direction] + row)
 
@@ -547,54 +566,82 @@ void __publish_%(locstr)s(void)
 }
 
 """
-        
+
         formatdict = dict(
-            locstr   = locstr,
-            uri      = server_uri,
-            decl     = "",
-            cleanup  = "",
-            init     = "",
-            retrieve = "",
-            publish  = "" 
+            locstr=locstr,
+            uri=server_uri,
+            decl="",
+            cleanup="",
+            init="",
+            retrieve="",
+            publish="",
         )
-        for direction, data in self.iteritems():
+        for direction, data in self.items():
             iec_direction_prefix = {"input": "__I", "output": "__Q"}[direction]
             for row in data:
                 name, ua_nsidx, ua_nodeid_type, _ua_node_id, ua_type, iec_number = row
-                iec_type, C_type, iec_size_prefix, ua_type_enum, ua_type = UA_IEC_types[ua_type]
-                c_loc_name = iec_direction_prefix + iec_size_prefix + locstr + "_" + str(iec_number)
+                iec_type, C_type, iec_size_prefix, ua_type_enum, ua_type = UA_IEC_types[
+                    ua_type
+                ]
+                c_loc_name = (
+                    iec_direction_prefix
+                    + iec_size_prefix
+                    + locstr
+                    + "_"
+                    + str(iec_number)
+                )
                 ua_nodeid_type, id_formating = UA_NODE_ID_types[ua_nodeid_type]
                 ua_node_id = id_formating.format(_ua_node_id)
 
-                formatdict["decl"] += """
-DECL_VAR({ua_type}, {C_type}, {c_loc_name})""".format(**locals())
+                formatdict[
+                    "decl"
+                ] += """
+DECL_VAR({ua_type}, {C_type}, {c_loc_name})""".format(
+                    **locals()
+                )
 
                 if direction == "input":
-                    formatdict["init"] +="""
-    INIT_READ_VARIANT({ua_type}, {c_loc_name})""".format(**locals())
-                    formatdict["retrieve"] += """
-    READ_VALUE({ua_type}, {ua_type_enum}, {c_loc_name}, {ua_nodeid_type}, {ua_nsidx}, {ua_node_id})""".format(**locals())
+                    formatdict[
+                        "init"
+                    ] += """
+    INIT_READ_VARIANT({ua_type}, {c_loc_name})""".format(
+                        **locals()
+                    )
+                    formatdict[
+                        "retrieve"
+                    ] += """
+    READ_VALUE({ua_type}, {ua_type_enum}, {c_loc_name}, {ua_nodeid_type}, {ua_nsidx}, {ua_node_id})""".format(
+                        **locals()
+                    )
 
                 if direction == "output":
-                    formatdict["init"] +="""
-    INIT_WRITE_VARIANT({ua_type}, {ua_type_enum}, {c_loc_name})""".format(**locals())
-                    formatdict["publish"] += """
-    WRITE_VALUE({ua_type}, {c_loc_name}, {ua_nodeid_type}, {ua_nsidx}, {ua_node_id})""".format(**locals())
+                    formatdict[
+                        "init"
+                    ] += """
+    INIT_WRITE_VARIANT({ua_type}, {ua_type_enum}, {c_loc_name})""".format(
+                        **locals()
+                    )
+                    formatdict[
+                        "publish"
+                    ] += """
+    WRITE_VALUE({ua_type}, {c_loc_name}, {ua_nodeid_type}, {ua_nsidx}, {ua_node_id})""".format(
+                        **locals()
+                    )
 
-        Ccode = template%formatdict
-        
+        Ccode = template % formatdict
+
         return Ccode
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     import wx.lib.mixins.inspection as wit
-    import sys,os
+    import sys, os
 
     app = wit.InspectableApp()
 
-    frame = wx.Frame(None, -1, "OPCUA Client Test App", size=(800,600))
+    frame = wx.Frame(None, -1, "OPCUA Client Test App", size=(800, 600))
 
-    uri = sys.argv[1] if len(sys.argv)>1 else "opc.tcp://localhost:4840"
+    uri = sys.argv[1] if len(sys.argv) > 1 else "opc.tcp://localhost:4840"
 
     test_panel = wx.Panel(frame)
     test_sizer = wx.FlexGridSizer(cols=1, hgap=0, rows=2, vgap=0)
@@ -603,18 +650,22 @@ if __name__ == "__main__":
 
     modeldata = OPCUAClientModel(print)
 
-    opcuatestpanel = OPCUAClientPanel(test_panel, modeldata, print, lambda:uri)
+    opcuatestpanel = OPCUAClientPanel(test_panel, modeldata, print, lambda: uri)
 
     def OnGenerate(evt):
         dlg = wx.FileDialog(
-            frame, message="Generate file as ...", defaultDir=os.getcwd(),
-            defaultFile="", 
-            wildcard="C (*.c)|*.c", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
+            frame,
+            message="Generate file as ...",
+            defaultDir=os.getcwd(),
+            defaultFile="",
+            wildcard="C (*.c)|*.c",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            Ccode = """
+            Ccode = (
+                """
 /*
 In case open62541 was built just aside beremiz, you can build this test with:
 gcc %s -o %s \\
@@ -624,7 +675,10 @@ gcc %s -o %s \\
     -I ../../open62541/arch/ ../../open62541/build/bin/libopen62541.a
 */
 
-"""%(path, path[:-2]) + modeldata.GenerateC(path, "test", uri) + """
+"""
+                % (path, path[:-2])
+                + modeldata.GenerateC(path, "test", uri)
+                + """
 
 int main(int argc, char *argv[]) {
 
@@ -639,20 +693,22 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 """
+            )
 
-            with open(path, 'wb') as Cfile:
+            with open(path, "wb") as Cfile:
                 Cfile.write(Ccode)
-
 
         dlg.Destroy()
 
     def OnLoad(evt):
         dlg = wx.FileDialog(
-            frame, message="Choose a file",
+            frame,
+            message="Choose a file",
             defaultDir=os.getcwd(),
             defaultFile="",
             wildcard="CSV (*.csv)|*.csv",
-            style=wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_FILE_MUST_EXIST )
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_FILE_MUST_EXIST,
+        )
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -663,10 +719,13 @@ int main(int argc, char *argv[]) {
 
     def OnSave(evt):
         dlg = wx.FileDialog(
-            frame, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", 
-            wildcard="CSV (*.csv)|*.csv", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
+            frame,
+            message="Save file as ...",
+            defaultDir=os.getcwd(),
+            defaultFile="",
+            wildcard="CSV (*.csv)|*.csv",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -687,9 +746,9 @@ int main(int argc, char *argv[]) {
     genbt = wx.Button(test_panel, label="Generate")
     test_panel.Bind(wx.EVT_BUTTON, OnGenerate, genbt)
 
-    testbt_sizer.Add(loadbt, 0, wx.LEFT|wx.RIGHT, 5)
-    testbt_sizer.Add(savebt, 0, wx.LEFT|wx.RIGHT, 5)
-    testbt_sizer.Add(genbt, 0, wx.LEFT|wx.RIGHT, 5)
+    testbt_sizer.Add(loadbt, 0, wx.LEFT | wx.RIGHT, 5)
+    testbt_sizer.Add(savebt, 0, wx.LEFT | wx.RIGHT, 5)
+    testbt_sizer.Add(genbt, 0, wx.LEFT | wx.RIGHT, 5)
 
     test_sizer.Add(testbt_sizer, flag=wx.GROW)
     test_sizer.Layout()
@@ -705,4 +764,3 @@ int main(int argc, char *argv[]) {
     frame.Show()
 
     app.MainLoop()
-

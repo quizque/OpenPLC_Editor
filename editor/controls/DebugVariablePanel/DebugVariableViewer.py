@@ -29,21 +29,21 @@ from collections import OrderedDict
 from functools import reduce
 
 import wx
-from matplotlib.backends.backend_wxagg import _convert_agg_to_wx_bitmap
 
 from dialogs.ForceVariableDialog import ForceVariableDialog
 
 # Viewer highlight types
-[HIGHLIGHT_NONE,
- HIGHLIGHT_BEFORE,
- HIGHLIGHT_AFTER,
- HIGHLIGHT_LEFT,
- HIGHLIGHT_RIGHT,
- HIGHLIGHT_RESIZE] = range(6)
+[
+    HIGHLIGHT_NONE,
+    HIGHLIGHT_BEFORE,
+    HIGHLIGHT_AFTER,
+    HIGHLIGHT_LEFT,
+    HIGHLIGHT_RIGHT,
+    HIGHLIGHT_RESIZE,
+] = range(6)
 
 # Viewer highlight styles
-HIGHLIGHT = {
-}
+HIGHLIGHT = {}
 
 # -------------------------------------------------------------------------------
 #                        Base Debug Variable Viewer Class
@@ -64,8 +64,7 @@ class DebugVariableViewer(object):
         """
         self.ParentWindow = window
         items = [] if items is None else items
-        self.ItemsDict = OrderedDict([(item.GetVariable(), item)
-                                      for item in items])
+        self.ItemsDict = OrderedDict([(item.GetVariable(), item) for item in items])
         self.Items = self.ItemsDict.viewvalues()
 
         # Variable storing current highlight displayed in Viewer
@@ -86,10 +85,10 @@ class DebugVariableViewer(object):
         Init global pens and brushes
         """
         if not HIGHLIGHT:
-            HIGHLIGHT['DROP_PEN'] = wx.Pen(wx.Colour(0, 128, 255))
-            HIGHLIGHT['DROP_BRUSH'] = wx.Brush(wx.Colour(0, 128, 255, 128))
-            HIGHLIGHT['RESIZE_PEN'] = wx.Pen(wx.Colour(200, 200, 200))
-            HIGHLIGHT['RESIZE_BRUSH'] = wx.Brush(wx.Colour(200, 200, 200))
+            HIGHLIGHT["DROP_PEN"] = wx.Pen(wx.Colour(0, 128, 255))
+            HIGHLIGHT["DROP_BRUSH"] = wx.Brush(wx.Colour(0, 128, 255, 128))
+            HIGHLIGHT["RESIZE_PEN"] = wx.Pen(wx.Colour(200, 200, 200))
+            HIGHLIGHT["RESIZE_BRUSH"] = wx.Brush(wx.Colour(200, 200, 200))
 
     def GetIndex(self):
         """
@@ -175,9 +174,11 @@ class DebugVariableViewer(object):
         Return the minimum tick common to all iems displayed in Viewer
         @return: Minimum common tick between items
         """
-        return reduce(max, [item.GetData()[0, 0]
-                            for item in self.Items
-                            if len(item.GetData()) > 0], 0)
+        return reduce(
+            max,
+            [item.GetData()[0, 0] for item in self.Items if len(item.GetData()) > 0],
+            0,
+        )
 
     def RefreshViewer(self):
         """
@@ -281,8 +282,8 @@ class DebugVariableViewer(object):
         width, height = self.GetSize()
 
         # Set dc styling for drop before or drop after highlight
-        dc.SetPen(HIGHLIGHT['DROP_PEN'])
-        dc.SetBrush(HIGHLIGHT['DROP_BRUSH'])
+        dc.SetPen(HIGHLIGHT["DROP_PEN"])
+        dc.SetBrush(HIGHLIGHT["DROP_BRUSH"])
 
         # Draw line at upper side of Viewer if highlight is drop before
         if self.Highlight == HIGHLIGHT_BEFORE:
@@ -310,14 +311,24 @@ class DebugVariableViewer(object):
                 srcX = srcBBox.x - (srcPos.x if destBBox.x == 0 else 0)
                 srcY = srcBBox.y - (srcPos.y if destBBox.y == 0 else 0)
 
-                srcBmp = _convert_agg_to_wx_bitmap(
-                    srcPanel.get_renderer(), None)
+                srcBmp = wx.Image(
+                    int(srcPanel.get_renderer().width),
+                    int(srcPanel.get_renderer().height),
+                )
+                srcBmp.SetData(srcPanel.get_renderer().tostring_rgb())
+
                 srcDC = wx.MemoryDC()
                 srcDC.SelectObject(srcBmp)
 
-                dc.Blit(destBBox.x, destBBox.y,
-                        int(destBBox.width), int(destBBox.height),
-                        srcDC, srcX, srcY)
+                dc.Blit(
+                    destBBox.x,
+                    destBBox.y,
+                    int(destBBox.width),
+                    int(destBBox.height),
+                    srcDC,
+                    srcX,
+                    srcY,
+                )
 
     def OnEnter(self, event):
         """
@@ -424,13 +435,11 @@ class DebugVariableViewer(object):
         # Open a dialog to enter varaible forced value
         dialog = ForceVariableDialog(self, iec_type, str(item.GetValue()))
         if dialog.ShowModal() == wx.ID_OK:
-            self.ParentWindow.ForceDataValue(iec_path.upper(),
-                                             dialog.GetValue())
+            self.ParentWindow.ForceDataValue(iec_path.upper(), dialog.GetValue())
 
     def ReleaseValue(self, item):
         """
         Release value of item given
         @param item: Item to release value
         """
-        self.ParentWindow.ReleaseDataValue(
-            item.GetVariable().upper())
+        self.ParentWindow.ReleaseDataValue(item.GetVariable().upper())
